@@ -1,0 +1,235 @@
+.widget-user-header.loop-head{
+	background-color:#296bf7;
+	border-radius: 0!important;
+	height: 150px!important;
+}
+
+#search-portfolio-id input[type = "text"],#search-portfolio-id select{
+	width: 100%;
+	padding: 10px 20px;
+	background-color: transparent;
+	border: 2px solid white;
+	border-radius: 5px;
+	color:white;
+}
+#search-portfolio-id select{
+	color:gray;
+	background-color:white;
+	-webkit-appearance: none;
+    -moz-appearance: none;
+    text-indent: 1px;
+    text-overflow: '';
+}
+
+#search-portfolio-id input[type = "text"]::placeholder{
+	color:white;
+}
+
+#search-portfolio-id button{
+    position: absolute;
+    border: 0;
+    color: white;
+    background-color: transparent;
+    font-size: 23px;
+    right: 14px;
+    top: 5px;
+    cursor: pointer;
+    padding: 0 10px 4px 10px;
+}
+/*
+.select-container .fa{
+	position: absolute;
+	right: 24px;
+	color: #296bf7;
+	font-size: 24px;
+	top: 13px;
+	pointer-events: none;
+}*/
+
+.select-container {
+	position: relative;
+}
+
+.select-container  select {
+  display: none; /*hide original SELECT element:*/
+}
+
+/*style the arrow inside the select element:*/
+.select-selected:after {
+  position: absolute;
+  content: "";
+  top: 20px;
+	right: 17px;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-color: #296af7 transparent transparent transparent;
+}
+/*point the arrow upwards when the select box is open (active):*/
+.select-selected.select-arrow-active:after {
+  border-color: transparent transparent #296af7 transparent;
+  top: 12px;
+}
+/*style the items (options), including the selected item:*/
+.select-items div,.select-selected {
+  color:  #296af7;
+  padding: 10px 20px;
+  border: 1px solid transparent;
+  border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+  cursor: pointer;
+
+}
+
+.select-selected{
+	background-color: #fff;
+	color:#b3b6c1;
+	border-radius: 5px;
+	-moz-user-select: none;
+   -khtml-user-select: none;
+   -webkit-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
+}
+/*style items (options):*/
+.select-items {
+  position: absolute;
+  background-color: white;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  margin-top: 5px;
+  border-radius: 5px;
+  border:1px solid rgba(0, 0, 0, 0.1);
+}
+
+
+.select-items div:last-child{
+	border-bottom-right-radius: 5px;
+	border-bottom-left-radius: 5px;
+	border:0;
+}
+
+/*hide the items when the select box is closed:*/
+.select-hide {
+  display: none;
+}
+.select-items div:hover, .same-as-selected {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.action-select{
+	width: 100%;
+}
+
+.action-select .select-selected	{
+	border:2px solid #296af7;
+	color:#296af7;
+}
+
+.action-link, .invoice-link,.del-link{
+	padding: 10px 20px;
+	max-width: 100%;
+	
+}
+
+.del-link{
+	color: #e05a5a;
+	text-align: center;
+	width: 100%;
+	border:1px solid transparent;
+}
+
+.del-link:hover{
+	color:rgba(224, 90, 90, 0.8);
+	border-radius: 5px;
+	border:1px solid whitesmoke;
+}
+
+.table-container{
+	border-radius:5px;
+	font-weight: 300;
+	background-color:#eff0f4;
+	border:1px solid #eff0f4;
+	color:#515a72;
+}
+
+.table-container thead tr{
+	color:white;
+	background-color:#2867f0;
+}
+
+.table-container tbody{
+	padding:10px 0;
+}
+
+.table-container tbody tr td{
+	padding-top:20px;
+	padding-bottom:20px;
+}
+/*
+.table-container thead tr th{
+	font-weight: 400;	
+}
+
+.table-container tbody tr:first-child,.table-container tbody tr:last-child{
+	height:10px;
+	background-color:transparent;
+}
+*/
+.table-container tbody tr:nth-child(odd){
+	background-color:white;
+}
+
+.table-container tbody tr:hover {
+    background-color: rgba(0,0,0,.075);
+}
+
+.table-container .badge{
+	font-size:14px;
+	font-weight: 300
+}
+
+@media (min-width:992px){
+	.action-select{
+		width: 150px;
+	}
+	.action-link{
+		max-width: 100px;
+	}
+	.del-link{
+		max-width: 80px;	
+	}
+	.invoice-link{
+		max-width: 200px;		
+	}
+}
+
+.widget-user .widget-user-header {
+    padding: 0;
+    height: auto;
+    border-top-left-radius: .25rem;
+    border-top-right-radius: .25rem;
+}
+
+.invoice-link{
+	border:0;
+	cursor: pointer;
+}
+
+.bc-gray {
+    padding: 10px 20px;
+    max-width: 100%;
+}
+
+.invoice-link:hover,.invoice-link:focus{
+	opacity: 0.8;
+	color:white;
+}
+
+.disabled-link{
+	background-color:#a5a5a5;
+	color:white;
+	padding: 10px 20px;
+    max-width: 100%;
+}

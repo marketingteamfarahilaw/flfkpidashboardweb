@@ -1,0 +1,8 @@
+.primary-link:not(.primary-link-border){
+	display: flex;
+	max-width: 100%;
+}
+
+.primary-link.primary-link-border{
+	margin-left:0!important;
+}

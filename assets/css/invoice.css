@@ -1,0 +1,12 @@
+.table-container thead tr {
+    color: white;
+    background-color: #2867f0;
+}
+
+.table-container {
+    border-radius: 5px;
+}
+
+.invoice-link{
+	max-width: 100%;
+}

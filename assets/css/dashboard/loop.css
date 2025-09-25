@@ -1,0 +1,45 @@
+.widget-user-header.loop-head{
+	background-color:#296bf7;
+	border-radius: 0!important;
+	height: 150px!important;
+}
+
+.green-link,.primary-link{
+    padding: 8px 10px;
+    font-size:14px;
+    max-width: 100px;
+}
+
+#search-id input[type = "text"]{
+	width: 100%;
+	padding: 12px 20px;
+	background-color: transparent;
+	border: 2px solid white;
+	border-radius: 5px;
+	color:white;
+
+}
+
+#search-id input[type = "text"]::placeholder{
+	color:#ddd;
+}
+
+#search-id button{
+	position: absolute;
+	border: 0;
+	color: white;
+	background-color: transparent;
+	font-size: 23px;
+	right: 14px;
+    top: 5px;
+	cursor:pointer;
+	padding: 0 10px 4px 10px;
+}
+
+@media (min-width:1500px){
+	.green-link,.primary-link{
+	    padding: 10px 30px;
+	    font-size:16px;
+	    max-width: 150px;
+	}
+}

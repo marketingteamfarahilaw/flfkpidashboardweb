@@ -1,0 +1,45 @@
+
+.form-logo{
+	max-height:90px;
+    margin:auto;
+}
+
+.form-container{
+    max-width: 400px;
+}
+
+.form-container input:not([type="submit"]):not([type="checkbox"]),.footer #contact-form-id textarea{
+    background: white;
+    border: 1px solid #ebebeb;
+    padding: 10px 15px;
+    font-size: 14px;
+    width: 100%;
+    color: black;
+    display:block;
+    border-radius:5px;
+    margin-bottom:20px;
+}
+
+.form-container input[type="submit"]{
+    padding: 10px 30px;
+    width:auto;
+}
+
+
+.form-img,.form-form{
+    padding:70px 0;
+}
+    
+
+/*MEDIA QUERY*/
+@media (min-width:992px){
+    .form-img,.form-form{
+        padding:0;
+        height:100vh;
+        min-height: 720px;
+    }
+    .form-logo{
+        margin:30px;
+    }
+
+}

@@ -1,0 +1,116 @@
+/******************* GENERAL *******************/
+/*[data-jCardInvoice] {
+    overflow: auto;
+    position: relative;
+}*/
+
+[data-jCardInvoice] button[onclick] {
+    cursor: pointer;
+}
+
+/******************* ICONS *******************/
+.jCardInvoice-icon {
+    height: 10px;
+    width: 10px;
+    display: inline-block;
+    opacity: .6;
+    margin-left: 5px;
+}
+
+.jCardInvoice-icon-asc {
+    background: url(asc.png) 0 0 no-repeat;
+}
+
+.jCardInvoice-icon-desc {
+    background: url(desc.png) 0 0 no-repeat;
+}
+
+.jCardInvoice-icon-unsorted {
+    background: url(unsorted.png) 0 0 no-repeat;
+}
+
+
+/******************* PAGINATION *******************/
+#jCardInvoice-action-bar {
+    text-align: center;
+    margin: 10px 0px;
+}
+
+#jCardInvoice-action-bar button,
+#jCardInvoice-action-bar label {
+    margin: 20px 0px 1px;
+    border: solid 1px #ccc;
+    font-weight: 600;
+}
+
+#jCardInvoice-action-bar label {
+    padding: 8px 15px;   
+    font-weight: 600;
+}
+
+#jCardInvoice-action-bar button {
+    padding: 8px 15px;   
+    font-weight: 600;
+}
+
+
+/******************* LODING ANIMATE *******************/
+.jCardInvoice-ajax-loading {
+    background-color: rgba(255, 255, 255, 0.5);
+    border: none;
+}
+
+.jCardInvoice-ajax-loading label {
+    margin-bottom: 0px;
+}
+
+.jCardInvoice-ajax-loading span {
+    background: url(ajax-loader.gif) 0 0 no-repeat;
+    height: 32px;
+    width: 32px;
+    display: inline-block;
+}
+
+.jCardInvoice-ajax-loading {
+    text-align: center;
+    top: 0px;
+}
+
+.jCardInvoice-ajax-loading > div {
+    display: inline-block;
+    padding: 13px 5px;
+    background-color: #fff;
+    border: solid 1px #ccc;
+    width: 100px;
+    border-radius: 4px;
+}
+
+[data-jCardInvoice] .jCardInvoice-ajax-loading {
+    position: absolute;
+}
+
+.jCardInvoice-ajax-loading {
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    background-color: rgba(255, 255, 255, 0.51);
+    padding-top: 15px !important;
+    border: none !important;
+}
+
+.jCardInvoice-ajax-loading div * {
+    display: block;
+    margin: 0px auto;
+}
+
+.jCardInvoice-ajax-loading div *:first-child {
+    margin-bottom: 15px;
+}
+
+
+.data {
+    font-size: 13px;
+    text-align: right;
+    margin-bottom: 11px;
+}
