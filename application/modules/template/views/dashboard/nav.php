@@ -103,7 +103,10 @@ $first_part = $components[2];
                     </a>
                     <div class="dropdown-menu nav-item">
                         <a href="<?= site_url('digital-marketing-kpi') ?>" class="dropdown-item <?= ($first_part == 'digital-marketing-kpi') ? 'active' : '' ?>">
-                            Digital Marketing KPI Report
+                            Marketing MTD Performance </br>Summary Report
+                        </a>
+                        <a href="<?= site_url('kpi') ?>" class="dropdown-item <?= ($first_part == 'kpi') ? 'active' : '' ?>">
+                             Department Marketing KPI Report
                         </a>
                         <a href="<?= site_url('content') ?>" class="dropdown-item <?= ($first_part == 'content') ? 'active' : '' ?>">
                             Content

@@ -80,6 +80,7 @@ $route['citation']                 =       'user/gbp_c/citation';
 $route['content']                 =       'user/digikpi_c/content';
 // $route['eow-digital-marketing-kpi']                 =       'user/digikpi_c/eowmarketingkpi';
 $route['digital-marketing-kpi']                 =       'user/digikpi_c/eommarketingkpi';
+$route['kpi']                 =       'user/digikpi_c/kpi';
 
 // settings
 $route['customer-settings']                 =       'user/setting_c';

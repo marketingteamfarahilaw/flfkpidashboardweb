@@ -29,6 +29,13 @@ class Digikpi_c extends MX_Controller {
 
         $this->template->dashboard($data);
     }
+    function kpi()
+    {
+        $data['title']          =   'Department Marketing KPI';
+        $data['content_view']   =   'user/marketing_kpi/kpi';
+
+        $this->template->dashboard($data);
+    }
     
     function asana()
     {

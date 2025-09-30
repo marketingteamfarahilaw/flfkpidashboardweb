@@ -1110,8 +1110,8 @@ $(document).ready(function () {
           // Referred Count
           this.referredcount = filteredReferred.filter(e =>
             (e.lead_outcome) === 'Referred out' 
-            // || (e.status === 'Referred')
-            // ['Referred out'].includes(e.lead_outcome)
+            || (e.status === 'Referred')
+            // ['Referred'].includes(e.status)
           ).length;
         
         
