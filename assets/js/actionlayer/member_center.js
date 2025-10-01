@@ -5,7 +5,7 @@ $( window ).on('load',() => {
 
 var token = JSON.parse(LocalStorage.get(STORAGE_ITEM.TOKEN));
 var base_url = window.location.host;
-var url = 'https://lmthrp.com/api/';
+var url = 'http://31.97.43.196/kpidashboardapi/';
 if (LocalStorage.get(STORAGE_ITEM.TOKEN)) {
     axios.get(endPoints.LOGIN.concat('?token=').concat(token), CONFIG.HEADER)
          .then( (response)  => {
