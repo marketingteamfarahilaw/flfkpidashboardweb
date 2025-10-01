@@ -997,35 +997,35 @@ $(document).ready(function () {
       this.startDate = firstDay.toISOString().slice(0, 10);
       this.endDate = now.toISOString().slice(0, 10);
 
-      fetch('https://lmthrp.com/api/kpi/fetchleaddocket', CONFIG.HEADER)
+      fetch('http://31.97.43.196/kpidashboardapi/kpi/fetchleaddocket', CONFIG.HEADER)
         .then(res => res.json())
         .then(data => {
           this.entries = data.response || [];
           this.filterByDateRange();
         });
         
-      fetch('https://lmthrp.com/api/kpi/fetchga', CONFIG.HEADER)
+      fetch('http://31.97.43.196/kpidashboardapi/kpi/fetchga', CONFIG.HEADER)
         .then(res => res.json())
         .then(data => {
           this.gaEntries = data.response || [];
           this.filterByDateRange();
         });
         
-      fetch('https://lmthrp.com/api/kpi/show', CONFIG.HEADER)
+      fetch('http://31.97.43.196/kpidashboardapi/kpi/show', CONFIG.HEADER)
         .then(res => res.json())
         .then(data => {
           this.postedblogs = data.response || [];
           this.filterByDateRange();
         });
         
-      fetch('https://lmthrp.com/api/kpi/fetchleadForm', CONFIG.HEADER)
+      fetch('http://31.97.43.196/kpidashboardapi/kpi/fetchleadForm', CONFIG.HEADER)
           .then(res => res.json())
           .then(data => {
             this.rawEmailsummary = data.response || [];
             this.filterByDateRange();
           });
 
-      fetch('https://lmthrp.com/api/GmbMetrics/gmbloclist', CONFIG.HEADER)
+      fetch('http://31.97.43.196/kpidashboardapi/GmbMetrics/gmbloclist', CONFIG.HEADER)
         .then(res => res.json())
         .then(data => {
           this.rawGmblocsummary = data.response || [];
