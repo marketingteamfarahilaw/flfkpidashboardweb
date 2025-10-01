@@ -175,7 +175,7 @@ $(document).ready(function () {
         this.$set(this.expanded, performer, !this.expanded[performer]);
       },
       async fetchData() {
-        const res = await fetch("https://lmthrp.com/api/kpi/getGraphicsTeam", CONFIG.HEADER);
+        const res = await fetch("http://31.97.43.196/kpidashboardapi/kpi/getGraphicsTeam", CONFIG.HEADER);
         const json = await res.json();
         if (json.status) {
           this.tasks = json.response;
