@@ -60,7 +60,7 @@
             watch: {},
             methods: {
                 fetchGBPData: async function () {
-                    let response = axios.get('https://lmthrp.com/api/kpi/showcitation', CONFIG.HEADER);
+                    let response = axios.get('http://31.97.43.196/kpidashboardapi/kpi/showcitation', CONFIG.HEADER);
 
                     return response;
                 },
@@ -97,7 +97,7 @@
                 async checkLinkViaBackend(url) {
                     try {
                         const encoded = encodeURIComponent(url);
-                        const res = await axios.get(`https://lmthrp.com/api/kpi/checkLinkStatus?url=${encoded}`, CONFIG.HEADER);
+                        const res = await axios.get(`http://31.97.43.196/kpidashboardapi/kpi/checkLinkStatus?url=${encoded}`, CONFIG.HEADER);
                         if (res.data && typeof res.data.isLive !== 'undefined') {
                             this.$set(this.linkStatusMap, url, res.data.isLive);
                         }
@@ -107,7 +107,7 @@
                 },
                 
                 fetchCitation: async function () {
-                    let response = axios.get('https://lmthrp.com/api/kpi/showcitationsummary', CONFIG.HEADER);
+                    let response = axios.get('http://31.97.43.196/kpidashboardapi/kpi/showcitationsummary', CONFIG.HEADER);
 
                     return response;
                 },

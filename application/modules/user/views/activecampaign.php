@@ -137,7 +137,7 @@ new Vue({
   },
   methods: {
     fetchData() {
-      axios.get('https://lmthrp.com/api/kpi/fetch_ac', CONFIG.HEADER)
+      axios.get('http://31.97.43.196/kpidashboardapi/kpi/fetch_ac', CONFIG.HEADER)
         .then(res => {
           if (res.data.status) {
             this.campaigns = res.data.response.map(c => ({
@@ -169,7 +169,7 @@ new Vue({
 
       if (!this.emailReports[campaignId]) {
         this.loadingDetails = true;
-        axios.get(`https://lmthrp.com/api/kpi/fetchemailreports?campaign_id=${campaignId}`, CONFIG.HEADER)
+        axios.get(`http://31.97.43.196/kpidashboardapi/kpi/fetchemailreports?campaign_id=${campaignId}`, CONFIG.HEADER)
           .then(res => {
             if (res.data.status && Array.isArray(res.data.response)) {
               this.$set(this.emailReports, campaignId, res.data.response);

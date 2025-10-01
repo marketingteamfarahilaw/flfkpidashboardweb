@@ -129,7 +129,7 @@
         
         fetchData: async function () {
     		
-    		let response = axios.get('https://lmthrp.com/api/kpi/keywordrank', CONFIG.HEADER);
+    		let response = axios.get('http://31.97.43.196/kpidashboardapi/kpi/keywordrank', CONFIG.HEADER);
                     
             return response;
         },

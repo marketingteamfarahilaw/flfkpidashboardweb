@@ -214,7 +214,7 @@ $(document).ready(function () {
       async fetchData() {
         try {
           this.loading = true;
-          const res = await fetch("https://lmthrp.com/api/kpi/fetchgaacqiosition", CONFIG.HEADER);
+          const res = await fetch("http://31.97.43.196/kpidashboardapi/kpi/fetchgaacqiosition", CONFIG.HEADER);
           const json = await res.json();
 
           if (json.status && Array.isArray(json.response)) {
