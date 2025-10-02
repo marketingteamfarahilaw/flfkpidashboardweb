@@ -12,6 +12,23 @@
 
       <!-- Filters -->
       <div class="row mb-3">
+        <!-- NEW: Date Range -->
+        <div class="col">
+          <label>Date Start</label>
+          <input type="date" class="form-control" v-model="filters.startDate">
+        </div>
+        <div class="col">
+          <label>Date End</label>
+          <input type="date" class="form-control" v-model="filters.endDate">
+        </div>
+        <div class="col d-flex align-items-end">
+          <div>
+            <button class="btn btn-outline-secondary mr-2" @click="clearDateRange">Clear</button>
+            <button class="btn btn-outline-primary" @click="setMTD()">MTD</button>
+          </div>
+        </div>
+
+        <!-- Existing dropdown filters -->
         <div class="col" v-for="(label, key) in filterLabels" :key="key">
           <label>{{ label }}</label>
           <select class="form-control" v-model="filters[key]">
@@ -94,7 +111,14 @@ $(document).ready(function () {
     data: {
       tasks: [],
       filters: {
-        dueMonth: '', dueYear: '', completedMonth: '', completedYear: '', performedBy: ''
+        // NEW date range fields
+        startDate: '',
+        endDate: '',
+
+        // existing dropdown filters
+        dueMonth: '', dueYear: '',
+        completedMonth: '', completedYear: '',
+        performedBy: ''
       },
       filterLabels: {
         dueMonth: 'Due Month',
@@ -124,18 +148,34 @@ $(document).ready(function () {
     },
     computed: {
       filteredTasks() {
+        const s = this.filters.startDate;
+        const e = this.filters.endDate;
+
         return this.tasks
           .filter(task => {
-            const due = new Date(task.due_on);
+            const due = task.due_on ? new Date(task.due_on) : null;
             const completed = task.completed_at ? new Date(task.completed_at) : null;
 
-            const dueMonthOk = !this.filters.dueMonth || (due instanceof Date && !isNaN(due) && this.filters.dueMonth === ('0' + (due.getMonth() + 1)).slice(-2));
-            const dueYearOk  = !this.filters.dueYear  || (due instanceof Date && !isNaN(due) && String(this.filters.dueYear) == String(due.getFullYear()));
-            const compMonthOk = !this.filters.completedMonth || (completed && this.filters.completedMonth === ('0' + (completed.getMonth() + 1)).slice(-2));
-            const compYearOk  = !this.filters.completedYear  || (completed && String(this.filters.completedYear) == String(completed.getFullYear()));
+            // Date-range logic (inclusive). If completed_at exists, use it; else use due_on.
+            let dateOk = true;
+            if (s || e) {
+              if (completed) {
+                dateOk = this.inRange(completed, s, e);
+              } else if (due) {
+                dateOk = this.inRange(due, s, e);
+              } else {
+                dateOk = false;
+              }
+            }
+
+            // Existing dropdown filters
+            const dueMonthOk = !this.filters.dueMonth || (this.isValidDate(due) && this.filters.dueMonth === ('0' + (due.getMonth() + 1)).slice(-2));
+            const dueYearOk  = !this.filters.dueYear  || (this.isValidDate(due) && String(this.filters.dueYear) == String(due.getFullYear()));
+            const compMonthOk = !this.filters.completedMonth || (this.isValidDate(completed) && this.filters.completedMonth === ('0' + (completed.getMonth() + 1)).slice(-2));
+            const compYearOk  = !this.filters.completedYear  || (this.isValidDate(completed) && String(this.filters.completedYear) == String(completed.getFullYear()));
             const performerOk = !this.filters.performedBy || task.performed_by === this.filters.performedBy;
 
-            return dueMonthOk && dueYearOk && compMonthOk && compYearOk && performerOk;
+            return dateOk && dueMonthOk && dueYearOk && compMonthOk && compYearOk && performerOk;
           })
           .sort((a, b) => {
             const aT = a.completed_at ? Date.parse(a.completed_at) : -Infinity;
@@ -167,6 +207,38 @@ $(document).ready(function () {
       }
     },
     methods: {
+      // ----- NEW helpers -----
+      // Return YYYY-MM-DD
+      fmt(d) {
+        const y = d.getFullYear();
+        const m = ('0' + (d.getMonth() + 1)).slice(-2);
+        const day = ('0' + d.getDate()).slice(-2);
+        return `${y}-${m}-${day}`;
+      },
+      setMTD() {
+        const today = new Date();
+        const first = new Date(today.getFullYear(), today.getMonth(), 1);
+        this.filters.startDate = this.fmt(first);
+        this.filters.endDate   = this.fmt(today);
+      },
+      clearDateRange() {
+        this.filters.startDate = '';
+        this.filters.endDate = '';
+      },
+      isValidDate(d) {
+        return d instanceof Date && !isNaN(d);
+      },
+      // Inclusive range: [start, end]
+      inRange(dateObj, startStr, endStr) {
+        if (!this.isValidDate(dateObj)) return false;
+        if (!startStr && !endStr) return true;
+        const t = dateObj.getTime();
+        const s = startStr ? new Date(startStr + 'T00:00:00').getTime() : -Infinity;
+        const e = endStr   ? new Date(endStr   + 'T23:59:59').getTime() : Infinity;
+        return t >= s && t <= e;
+      },
+      // -----------------------
+
       sortBy(key) {
         if (this.sortKey === key) this.sortAsc = !this.sortAsc;
         else { this.sortKey = key; this.sortAsc = true; }
@@ -196,6 +268,11 @@ $(document).ready(function () {
           this.filterOptions.dueYear = years;
           this.filterOptions.completedYear = years;
           this.filterOptions.performedBy = performers;
+
+          // Default to current MTD on first load
+          if (!this.filters.startDate && !this.filters.endDate) {
+            this.setMTD();
+          }
 
           this.renderChart();
         }
@@ -315,14 +392,12 @@ $(document).ready(function () {
         const completedCounts  = assignees.map(a => byAssignee[a].complete);
         const incompleteCounts = assignees.map(a => byAssignee[a].incomplete);
 
-        // destroy if exist
         if (this.completedBarInstance)  this.completedBarInstance.destroy();
         if (this.incompleteBarInstance) this.incompleteBarInstance.destroy();
 
         const c1 = document.getElementById('completedByAssignee').getContext('2d');
         const c2 = document.getElementById('incompleteByAssignee').getContext('2d');
 
-        // simple value label plugin
         const valueLabelPlugin = {
           id: 'valueLabelPlugin',
           afterDatasetsDraw(chart) {
@@ -355,7 +430,6 @@ $(document).ready(function () {
           }
         });
 
-        // Completed bar
         this.completedBarInstance = new Chart(c1, {
           type: 'bar',
           data: {
@@ -366,7 +440,6 @@ $(document).ready(function () {
           plugins: [valueLabelPlugin]
         });
 
-        // Incomplete bar
         this.incompleteBarInstance = new Chart(c2, {
           type: 'bar',
           data: {
