@@ -46,7 +46,7 @@ $(document).ready(function () {
       async fetchData() {
         try {
           this.loading = true;
-          const res = await fetch("https://lmthrp.com/api/kpi/fetchga", CONFIG.HEADER);
+          const res = await fetch("http://31.97.43.196/kpidashboardapi/kpi/fetchga", CONFIG.HEADER);
           const json = await res.json();
           if (json.status) {
             let cleanedData = json.response.map(item => ({

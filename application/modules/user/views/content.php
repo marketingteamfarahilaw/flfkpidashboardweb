@@ -236,7 +236,7 @@ $(document).ready(function () {
             },
             async fetchKPIReports() {
                 try {
-                    const res = await axios.get('https://lmthrp.com/api/kpi/show', CONFIG.HEADER);
+                    const res = await axios.get('http://31.97.43.196/kpidashboardapi/kpi/show', CONFIG.HEADER);
                     this.contentData = res.data.response || [];
                 } catch (error) {
                     console.error('Failed to fetch KPI report data:', error);
@@ -244,7 +244,7 @@ $(document).ready(function () {
             },
             async fetchGBPReports() {
                 try {
-                    const res = await axios.get('https://lmthrp.com/api/kpi/fetchGBPTask', CONFIG.HEADER);
+                    const res = await axios.get('http://31.97.43.196/kpidashboardapi/kpi/fetchGBPTask', CONFIG.HEADER);
                     this.gbpData = res.data.response || [];
                     this.clientData = res.data.response || []; // Separate if needed
                 } catch (error) {

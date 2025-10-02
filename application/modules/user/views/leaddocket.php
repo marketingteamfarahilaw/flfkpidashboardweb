@@ -318,7 +318,7 @@ $(document).ready(function () {
         },
         mounted() {
             // Initial data load
-            fetch("https://lmthrp.com/api/kpi/fetchleaddocket", CONFIG.HEADER)
+            fetch("http://31.97.43.196/kpidashboardapi/kpi/fetchleaddocket", CONFIG.HEADER)
                 .then(res => res.json())
                 .then(data => {
                     this.rawData = data.response;
@@ -328,9 +328,9 @@ $(document).ready(function () {
                 .catch(err => console.error("API fetch error:", err));
 
             Promise.all([
-                fetch('https://lmthrp.com/api/kpi/countsign', CONFIG.HEADER).then(res => res.json()),
-                fetch('https://lmthrp.com/api/kpi/countmtd', CONFIG.HEADER).then(res => res.json()),
-                fetch('https://lmthrp.com/api/kpi/referredcount', CONFIG.HEADER).then(res => res.json())
+                fetch('http://31.97.43.196/kpidashboardapi/kpi/countsign', CONFIG.HEADER).then(res => res.json()),
+                fetch('http://31.97.43.196/kpidashboardapi/kpi/countmtd', CONFIG.HEADER).then(res => res.json()),
+                fetch('http://31.97.43.196/kpidashboardapi/kpi/referredcount', CONFIG.HEADER).then(res => res.json())
             ]).then(([signData, mtdData, referredData]) => {
                 this.mtdsigncount = signData.response;
                 this.mtdleadcount = mtdData.response;
