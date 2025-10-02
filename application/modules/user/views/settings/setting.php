@@ -86,7 +86,7 @@ $(document).ready(function () {
     },
     methods: {
       getUserList: async function () {
-        return axios.get(`https://lmthrp.com/api/customer/users?token=${token}`, CONFIG.HEADER);
+        return axios.get(`http://31.97.43.196/kpidashboardapi/customer/users?token=${token}`, CONFIG.HEADER);
       },
       setUserList: async function () {
         try {
@@ -115,7 +115,7 @@ $(document).ready(function () {
           formData.append(key, this.registrationForm[key]);
         }
 
-        axios.post('https://lmthrp.com/api/site/register', formData, CONFIG.HEADER)
+        axios.post('http://31.97.43.196/kpidashboardapi/site/register', formData, CONFIG.HEADER)
           .then(response => {
             alert('User registered successfully!');
             $('#userModal').modal('hide');
