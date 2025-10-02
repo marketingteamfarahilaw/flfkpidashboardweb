@@ -1,7 +1,7 @@
 var origin   = window.location.origin;
 var server = {
     'CISERVICE'                   : 'http://31.97.43.196/kpidashboardapi',
-    'CISITE'                      : 'http://31.97.43.196/kpidashboardweb',
+    'CISITE'                      : 'http://31.97.43.196/kpidashboard',
 }
 
 var viewRoutes = {
