@@ -1117,7 +1117,7 @@ $(document).ready(function () {
         
         // Generate in-house signup summary grouped by marketing_source
         
-        const signedEntries = filteredReferred.filter(e =>
+        const signedEntries = filteredWholeData.filter(e =>
           (e.lead_outcome || e.status) === 'Signed'
         );
         const AllEntries = filteredReferred.filter(e =>
