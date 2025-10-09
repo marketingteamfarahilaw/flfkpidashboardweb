@@ -1011,7 +1011,7 @@ $(document).ready(function () {
           this.filterByDateRange();
         });
         
-      fetch('http://31.97.43.196/kpidashboardapi/kpi/show', CONFIG.HEADER)
+      fetch('http://31.97.43.196/kpidashboardapi/kpi/content', CONFIG.HEADER)
         .then(res => res.json())
         .then(data => {
           this.postedblogs = data.response || [];
