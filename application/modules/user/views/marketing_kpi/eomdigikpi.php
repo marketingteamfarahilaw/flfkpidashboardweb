@@ -1613,8 +1613,8 @@ $(document).ready(function () {
         
         // Filter On Page Blog posts within date range
         const filtereOnPageBlog = this.postedblogs.filter(entry => {
-          const date = entry.date;
-          return date && inRange(date) && entry.article_type === 'On Page Blog';
+          const date = entry.task_date;
+          return date && inRange(date) && entry.type === 'On Page Blog';
         });
         
         // Group by brand and count
