@@ -1468,9 +1468,9 @@ $(document).ready(function () {
         
           // Filter postedblogs for "On Page Blog" and "Off Page Blog" in range
             const filteredArticles = this.postedblogs.filter(entry => {
-              const date = entry.date;
+              const date = entry.task_date;
               return date && inRange(date) && 
-                (entry.article_type === 'On Page Blog' || entry.article_type === 'Off Page Blog');
+                (entry.type === 'On Page Blog' || entry.type === 'Off Page Blog');
             });
             
             // Count by type
