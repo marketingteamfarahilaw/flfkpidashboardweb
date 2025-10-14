@@ -860,7 +860,7 @@ $(document).ready(function () {
         
         // KPI Targets
         targetlead: '250',
-        targetsignup: '55',
+        targetsignup: '45',
         
         // KPI Output
         mtdleadcount: 0,
