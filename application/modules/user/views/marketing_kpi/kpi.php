@@ -11,6 +11,7 @@
     new Vue({
         el: '#app',
         data: {
+        
             selectedRow: {
                 person: '',
                 report: '',
@@ -28,9 +29,119 @@
                 date: '',
                 platform: '',
             },
+
+            uniqueOptions: {
+                reports: [],
+                months: [],
+                brands: [],
+                dates: [],
+                platforms: [],
+            },
+            barChartInstance: null,
+            targetData: {
+                'Blog Optimized': 25,
+                'Blog Published': 50,
+                'News Published': 20,
+                'Web App Developed' : 20,
+                'Web App Optimized': 20,
+                'Landing Page Developed': 10,
+                'Landing Page Optimized': 25
+            },
+            
+            webdevEOW: '',
         },
         computed: {
+            filteredTasks() {
+                const search = this.filters.search.toLowerCase();
             
+                return this.allAsanaTasks.filter(task => {
+                const taskName = task.name?.toLowerCase() || '';
+                const assignee = task.project || 'Unassigned';
+                const status = task.status?.toLowerCase() || '';
+                const dueDate = task.due_on ? new Date(task.due_on) : null;
+                const completedDate = task.completed_at ? new Date(task.completed_at) : null;
+            
+                const dueMonth = dueDate?.toLocaleString('default', { month: 'long' });
+                const completedMonth = completedDate?.toLocaleString('default', { month: 'long' });
+            
+                return (
+                    (!this.filters.search || taskName.includes(search) || status.includes(search) || assignee.toLowerCase().includes(search)) &&
+                    (!this.filters.completed || (this.filters.completed === 'true'
+                    ? status === 'true'
+                    : status !== 'true')) &&
+                    (!this.filters.dueMonth || dueMonth === this.filters.dueMonth) &&
+                    (!this.filters.completedMonth || completedMonth === this.filters.completedMonth) &&
+                    (!this.filters.assignee || assignee === this.filters.assignee)
+                );
+                });
+            },
+            
+            uniqueDueMonths() {
+                const months = new Set();
+                this.allAsanaTasks.forEach(task => {
+                if (task.due_on) {
+                    const month = new Date(task.due_on).toLocaleString('default', { month: 'long' });
+                    months.add(month);
+                }
+                });
+                return Array.from(months);
+            },
+            
+            uniqueCompletedMonths() {
+                const months = new Set();
+                this.allAsanaTasks.forEach(task => {
+                if (task.completed_at) {
+                    const month = new Date(task.completed_at).toLocaleString('default', { month: 'long' });
+                    months.add(month);
+                }
+                });
+                return Array.from(months);
+            },
+            
+            uniqueAssignees() {
+                const names = new Set(this.allAsanaTasks.map(task => task.project || 'Unassigned'));
+                return Array.from(names);
+            },
+            
+            
+            uniqueMonths() {
+                const months = new Set();
+                this.profileData.forEach(item => {
+                if (item.report === 'TLC') {
+                    const month = new Date(item.date).toLocaleString('default', { month: 'long' });
+                    months.add(month);
+                }
+                });
+                return Array.from(months);
+            },
+            uniqueBrands() {
+                const brands = new Set();
+                this.profileData.forEach(item => {
+                if (item.report === 'TLC') {
+                    brands.add(item.brand);
+                }
+                });
+                return Array.from(brands);
+            },
+            uniquePlatforms() {
+                const platforms = new Set();
+                this.profileData.forEach(item => {
+                if (item.report === 'TLC') {
+                    platforms.add(item.platform);
+                }
+                });
+                return Array.from(platforms);
+            },
+            
+            uniquePerformedBy() {
+                const names = new Set();
+                this.profileData.forEach(item => {
+                if (item.report === 'TLC') {
+                    names.add(item.performed_by);
+                }
+                });
+                return Array.from(names);
+            },
 
             weeklyDataByPerson() {
                 const today = new Date();
@@ -70,31 +181,31 @@
 
     
             filteredData() {
-                const search = this.filters.search.toLowerCase();
-                
-                return this.profileData
-                    .filter(item => {
-                    const monthName = new Date(item.date).toLocaleString('default', { month: 'long' });
-                
-                    const matchesSearch = !search || (
-                        (item.performed_by && item.performed_by.toLowerCase().includes(search)) ||
-                        (item.report && item.report.toLowerCase().includes(search)) ||
-                        (item.brand && item.brand.toLowerCase().includes(search)) ||
-                        (item.platform && item.platform.toLowerCase().includes(search)) ||
-                        (item.notes && item.notes.toLowerCase().includes(search))
-                    );
-                
-                    return (
-                        item.report !== 'TLC' && // 👈 Filter out SocMed here
-                        matchesSearch &&
-                        (!this.filters.report || item.report === this.filters.report) &&
-                        (!this.filters.month || monthName === this.filters.month) &&
-                        (!this.filters.brand || item.brand === this.filters.brand) &&
-                        (!this.filters.date || item.date === this.filters.date) &&
-                        (!this.filters.platform || item.platform === this.filters.platform)
-                    );
-                    })
-                    .sort((a, b) => new Date(b.date) - new Date(a.date)); // latest to oldest
+            const search = this.filters.search.toLowerCase();
+            
+            return this.profileData
+                .filter(item => {
+                const monthName = new Date(item.date).toLocaleString('default', { month: 'long' });
+            
+                const matchesSearch = !search || (
+                    (item.performed_by && item.performed_by.toLowerCase().includes(search)) ||
+                    (item.report && item.report.toLowerCase().includes(search)) ||
+                    (item.brand && item.brand.toLowerCase().includes(search)) ||
+                    (item.platform && item.platform.toLowerCase().includes(search)) ||
+                    (item.notes && item.notes.toLowerCase().includes(search))
+                );
+            
+                return (
+                    item.report !== 'TLC' && // 👈 Filter out SocMed here
+                    matchesSearch &&
+                    (!this.filters.report || item.report === this.filters.report) &&
+                    (!this.filters.month || monthName === this.filters.month) &&
+                    (!this.filters.brand || item.brand === this.filters.brand) &&
+                    (!this.filters.date || item.date === this.filters.date) &&
+                    (!this.filters.platform || item.platform === this.filters.platform)
+                );
+                })
+                .sort((a, b) => new Date(b.date) - new Date(a.date)); // latest to oldest
             },
 
             mtdData() {
@@ -158,28 +269,6 @@
                 const total = this.tasksByAssignee(assignee).length;
                 return Math.ceil(total / this.assigneeDetailPerPage);
             },
-            async fetchAllAsanaTasks() {
-                try {
-                const [cyberRes, kcRes] = await Promise.all([
-                    axios.get(endPoints.ASANACYBER, CONFIG.HEADER),
-                    axios.get(endPoints.ASANAKC, CONFIG.HEADER)
-                ]);
-            
-                const cyber = cyberRes.data.response.map(task => ({
-                    ...task,
-                    project: 'Cyber'
-                }));
-                const kc = kcRes.data.response.map(task => ({
-                    ...task,
-                    project: 'KC'
-                }));
-            
-                this.allAsanaTasks = [...cyber, ...kc];
-            
-                } catch (e) {
-                console.error('Error fetching Asana tasks:', e);
-                }
-            },
             
             
             tasksByAssignee(project) {
@@ -236,103 +325,34 @@
                 return Math.ceil(filtered.length / this.detailPerPage);
             },
             
-            toggleSocmedDetails(person) {
-                if (this.expandedSocmedPerson === person) {
-                this.expandedSocmedPerson = null;
-                } else {
-                this.expandedSocmedPerson = person;
-                this.$set(this.socmedDetailPage, person, 1); // Reset to page 1
+            updateBarChart() {
+                if (this.barChartInstance) {
+                    const updatedData = this.prepareBarChartData();
+                    this.barChartInstance.data = updatedData;
+                    this.barChartInstance.update();
                 }
             },
-            paginatedSocmedDetails(person) {
-                const all = this.groupedSocmedByPerson[person] || [];
-                const page = this.socmedDetailPage[person] || 1;
-                const start = (page - 1) * this.socmedDetailPerPage;
-                return all.slice(start, start + this.socmedDetailPerPage);
-            },
-            socmedTotalPages(person) {
-                const total = this.groupedSocmedByPerson[person]?.length || 0;
-                return Math.ceil(total / this.socmedDetailPerPage);
-            },
-            exportSocmedToExcel() {
-            // 1. SocMed Table Sheet
-            const socmedRecords = this.profileData.filter(item => item.report === 'SocMed');
-            const socmedTable = [['Performed By', 'Date', 'Brand', 'Platform', 'Notes']];
-            socmedRecords.forEach(item => {
-                socmedTable.push([
-                item.performed_by,
-                item.date,
-                item.brand,
-                item.platform,
-                item.notes || ''
-                ]);
-            });
+            prepareBarChartData() {
+                // Count how many reports per person from filteredData
+                const performerCounts = {};
             
-            const socmedWS = XLSX.utils.aoa_to_sheet(socmedTable);
-            
-            // 2. MTD Summary Sheet
-            const mtd = this.socmedMtdData;
-            const mtdSheet = [
-                ['📊 SocMed MTD Summary'],
-                ['Date Exported', new Date().toLocaleString()],
-                [],
-                ['Total Reports', mtd.totalReports],
-                ['Unique Contributors', mtd.uniquePerformers],
-                [],
-                ['Brand', 'Count']
-            ];
-            for (const [brand, count] of Object.entries(mtd.brandCounts)) {
-                mtdSheet.push([brand, count]);
-            }
-            const mtdWS = XLSX.utils.aoa_to_sheet(mtdSheet);
-            
-            // 3. Weekly Summary by Person & Brand
-            const weekly = this.socmedWeeklyByPerson;
-            const weeklySheet = [['Person', 'Brand', 'Count']];
-            for (const [person, data] of Object.entries(weekly)) {
-                for (const [brand, count] of Object.entries(data.brands)) {
-                weeklySheet.push([person, brand, count]);
-                }
-            }
-            const weeklyWS = XLSX.utils.aoa_to_sheet(weeklySheet);
-            
-            // 4. Create Workbook
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, socmedWS, 'SocMed Reports');
-            XLSX.utils.book_append_sheet(wb, mtdWS, 'MTD Summary');
-            XLSX.utils.book_append_sheet(wb, weeklyWS, 'Weekly Summary');
-            
-            // 5. Export
-            const filename = `SocMed_Export_${new Date().toISOString().slice(0, 10)}.xlsx`;
-            XLSX.writeFile(wb, filename);
-            },
-
-            renderBarChart() {
-                const ctx = document.getElementById('barChart').getContext('2d');
-                const chartData = this.prepareBarChartData();
-            
-                this.barChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: chartData,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Report Count by Performed By'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                            precision: 0
-                            }
-                        }
-                    }
-                }
+                this.filteredData.forEach(item => {
+                    const name = item.performed_by || 'Unknown';
+                    if (!performerCounts[name]) performerCounts[name] = 0;
+                    performerCounts[name]++;
                 });
+            
+                const labels = Object.keys(performerCounts);
+                const counts = Object.values(performerCounts);
+            
+                return {
+                labels: labels,
+                    datasets: [{
+                        label: 'Reports',
+                        backgroundColor: '#42a5f5',
+                        data: counts
+                    }]
+                };
             },
 
             getTarget(person, report) {
@@ -464,6 +484,7 @@
                 this.filteredData.forEach(item => {
                     const person = item.performed_by;
                     const report = item.report;
+            
             
                     if (!grouped[person]) {
                         grouped[person] = {};
