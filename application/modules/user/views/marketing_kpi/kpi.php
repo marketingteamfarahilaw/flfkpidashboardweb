@@ -74,7 +74,7 @@ $(document).ready(function () {
               (item.brand && item.brand.toLowerCase().includes(search)) ||
               (item.platform && item.platform.toLowerCase().includes(search)) ||
               (item.notes && item.notes.toLowerCase().includes(search)) ||
-              (item.department && item.department.toLowerCase().includes(search))
+              (item.customer_department && item.customer_department.toLowerCase().includes(search))
             );
 
             // Normalize date to YYYY-MM-DD for strict equality against <input type="date">
@@ -82,8 +82,8 @@ $(document).ready(function () {
               (String(item.date).slice(0, 10) === String(this.filters.date).slice(0, 10));
 
             // Optional filter by department
-            const matchesDept = !this.filters.department ||
-              (item.department === this.filters.department);
+            const matchesDept = !this.filters.customer_department ||
+              (item.customer_department === this.filters.customer_department);
 
             return (
               item.report !== 'TLC' &&              // keep excluding TLC if that’s intended
