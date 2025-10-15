@@ -51,41 +51,6 @@
             webdevEOW: '',
         },
         computed: {
-            filteredTasks() {
-                const search = this.filters.search.toLowerCase();
-            
-                return this.allAsanaTasks.filter(task => {
-                const taskName = task.name?.toLowerCase() || '';
-                const assignee = task.project || 'Unassigned';
-                const status = task.status?.toLowerCase() || '';
-                const dueDate = task.due_on ? new Date(task.due_on) : null;
-                const completedDate = task.completed_at ? new Date(task.completed_at) : null;
-            
-                const dueMonth = dueDate?.toLocaleString('default', { month: 'long' });
-                const completedMonth = completedDate?.toLocaleString('default', { month: 'long' });
-            
-                return (
-                    (!this.filters.search || taskName.includes(search) || status.includes(search) || assignee.toLowerCase().includes(search)) &&
-                    (!this.filters.completed || (this.filters.completed === 'true'
-                    ? status === 'true'
-                    : status !== 'true')) &&
-                    (!this.filters.dueMonth || dueMonth === this.filters.dueMonth) &&
-                    (!this.filters.completedMonth || completedMonth === this.filters.completedMonth) &&
-                    (!this.filters.assignee || assignee === this.filters.assignee)
-                );
-                });
-            },
-            
-            uniqueDueMonths() {
-                const months = new Set();
-                this.allAsanaTasks.forEach(task => {
-                if (task.due_on) {
-                    const month = new Date(task.due_on).toLocaleString('default', { month: 'long' });
-                    months.add(month);
-                }
-                });
-                return Array.from(months);
-            },
             
             uniqueCompletedMonths() {
                 const months = new Set();
