@@ -402,7 +402,7 @@
 
             async getProfileDetail() {
                 try {
-                    let response = await axios.get('http://31.97.43.196/kpidashboardapi/kpi/content', CONFIG.HEADER);
+                    let response = await axios.get('http://31.97.43.196/kpidashboardapi/kpi/fetchGBPTask', CONFIG.HEADER);
                     return response;
                 } catch (error) {
                     console.log(error);
