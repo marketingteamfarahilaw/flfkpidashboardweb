@@ -17,8 +17,12 @@ $(document).ready(function () {
       detailPage: 1,
       detailPerPage: 10,
 
-      profileData: [],        // unified data from ALL endpoints
-      groupedData: {},        // grouped by person -> report
+      // Unified KPI data + user directory
+      profileData: [],
+      usersDirectory: [],          // raw users
+      firstNameDeptIndex: {},      // { 'faye': 'Content', ... }
+
+      groupedData: {},             // grouped by person -> report
       barChartInstance: null,
 
       // Filters
@@ -27,8 +31,9 @@ $(document).ready(function () {
         report: '',
         month: '',
         brand: '',
-        date: '',             // YYYY-MM-DD
+        date: '',                  // YYYY-MM-DD
         platform: '',
+        department: '',            // NEW (optional)
       },
 
       // Options for dropdowns
@@ -38,9 +43,10 @@ $(document).ready(function () {
         brands: [],
         platforms: [],
         dates: [],
+        departments: [],           // NEW (optional)
       },
 
-      // Optional per-report targets (fallback used if key not found)
+      // Per-report targets (fallback used if key not found)
       targetData: {
         'Blog Optimized': 25,
         'Blog Published': 50,
@@ -55,7 +61,7 @@ $(document).ready(function () {
     },
 
     computed: {
-      // Entire dashboard should always rely on filteredData
+      // Entire dashboard should rely on filteredData
       filteredData() {
         const search = (this.filters.search || '').toLowerCase();
 
@@ -67,12 +73,17 @@ $(document).ready(function () {
               (item.report && item.report.toLowerCase().includes(search)) ||
               (item.brand && item.brand.toLowerCase().includes(search)) ||
               (item.platform && item.platform.toLowerCase().includes(search)) ||
-              (item.notes && item.notes.toLowerCase().includes(search))
+              (item.notes && item.notes.toLowerCase().includes(search)) ||
+              (item.department && item.department.toLowerCase().includes(search))
             );
 
             // Normalize date to YYYY-MM-DD for strict equality against <input type="date">
             const sameDate = !this.filters.date ||
               (String(item.date).slice(0, 10) === String(this.filters.date).slice(0, 10));
+
+            // Optional filter by department
+            const matchesDept = !this.filters.department ||
+              (item.department === this.filters.department);
 
             return (
               item.report !== 'TLC' &&              // keep excluding TLC if that’s intended
@@ -81,13 +92,14 @@ $(document).ready(function () {
               (!this.filters.month || monthName === this.filters.month) &&
               (!this.filters.brand || item.brand === this.filters.brand) &&
               (!this.filters.platform || item.platform === this.filters.platform) &&
-              sameDate
+              sameDate &&
+              matchesDept
             );
           })
           .sort((a, b) => new Date(b.date) - new Date(a.date)); // latest first
       },
 
-      // Weekly summary by person (still respects filters)
+      // Weekly summary by person (respects filters)
       weeklyDataByPerson() {
         const today = new Date();
         const startOfWeek = new Date(today);
@@ -115,17 +127,17 @@ $(document).ready(function () {
         return result;
       },
 
-      // Daily KPI by Team (respects filters)
-      dailyKPIByTeam() {
+      // ✅ Daily KPI by Department (respects filters)
+      dailyKPIByDepartment() {
         const out = {};
         this.filteredData.forEach(item => {
-          const team = item.team || 'Unassigned';
+          const department = item.department || 'Unassigned';
           const date = (item.date || '').slice(0, 10);
-          if (!out[team]) out[team] = {};
-          if (!out[team][date]) out[team][date] = 0;
-          out[team][date]++;
+          if (!out[department]) out[department] = {};
+          if (!out[department][date]) out[department][date] = 0;
+          out[department][date]++;
         });
-        return out; // { Team: { '2025-10-14': 5, ... }, ... }
+        return out; // { Department: { '2025-10-14': 5, ... }, ... }
       },
 
       // MTD summary (respects filters)
@@ -163,7 +175,27 @@ $(document).ready(function () {
     },
 
     methods: {
-      // ===== Detail table helpers =====
+      // -------- Matching helpers ----------
+      normalize(val) {
+        return String(val || '').trim().toLowerCase();
+      },
+      firstWord(name) {
+        return this.normalize(name).split(/\s+/)[0] || '';
+      },
+
+      // Enrich KPI records with department via first-name match
+      attachDepartmentsToKPI(kpiArray) {
+        return kpiArray.map(item => {
+          const candidate =
+            this.firstWord(item.performed_by) ||
+            this.firstWord(item.created_by);
+
+          const dept = this.firstNameDeptIndex[candidate] || 'Unassigned';
+          return { ...item, department: dept };
+        });
+      },
+
+      // -------- Detail table helpers ----------
       toggleDetails(person, report) {
         if (this.selectedRow.person === person && this.selectedRow.report === report) {
           this.selectedRow = { person: '', report: '' };
@@ -211,7 +243,7 @@ $(document).ready(function () {
         return Math.ceil(filtered.length / this.detailPerPage);
       },
 
-      // ===== Targets/Progress helpers =====
+      // -------- Targets/Progress helpers ----------
       getTarget(person, report) {
         const key = `${person}-${report}`;
         return this.targetData[key] || this.targetData[report] || 20; // sensible fallback
@@ -227,17 +259,37 @@ $(document).ready(function () {
         return target ? ((count / target) * 100).toFixed(1) + '%' : '0%';
       },
 
-      // ===== Data fetching (COMBINE 3 ENDPOINTS) =====
-      async getProfileDetail() {
+      // -------- Data fetching (3 KPI endpoints + Users) ----------
+      async fetchUsers() {
+        try {
+          const res = await axios.get('http://31.97.43.196/kpidashboardapi/customer/users', CONFIG.HEADER);
+          const users = res?.data?.response || res?.data || [];
+          this.usersDirectory = users;
+
+          // Build first_name -> department index (normalized)
+          const index = {};
+          users.forEach(u => {
+            const first = this.normalize(u.first_name || u.firstname || u.given_name);
+            const dept  = u.department || u.team || u.role || 'Unassigned';
+            if (first) index[first] = dept;
+          });
+          this.firstNameDeptIndex = index;
+        } catch (e) {
+          console.error('Users fetch failed:', e);
+          this.usersDirectory = [];
+          this.firstNameDeptIndex = {};
+        }
+      },
+
+      async fetchKPI() {
         try {
           const urls = [
             'http://31.97.43.196/kpidashboardapi/kpi/show',
-            'http://31.97.43.196/kpidashboardapi/kpi/getGraphicsTeam',
-            'http://31.97.43.196/kpidashboardapi/kpi/content'
+            'http://31.97.43.196/kpidashboardapi/kpi/fetchGBPTask',
+            'http://31.97.43.196/kpidashboardapi/kpi/fetchSocMedTask'
           ];
           const responses = await Promise.all(urls.map(url => axios.get(url, CONFIG.HEADER)));
           const mergedData = responses.flatMap(res => res?.data?.response || []);
-          // Optional: capture any conclusion text if present on the first endpoint
           this.webdevEOW = responses?.[0]?.data?.conclusionEOW || '';
           return mergedData;
         } catch (error) {
@@ -248,11 +300,18 @@ $(document).ready(function () {
 
       async setKPI() {
         try {
-          const result = await this.getProfileDetail();
-          this.profileData = result;
+          // 1) Load directory first (for mapping), then KPI
+          await this.fetchUsers();
+          const rawKPI = await this.fetchKPI();
+
+          // 2) Attach department to each KPI row using first-name match
+          const enriched = this.attachDepartmentsToKPI(rawKPI);
+          this.profileData = enriched;
+
+          // 3) Build filter options, groups, chart
           this.setFilterOptions();
           this.groupRecords();
-          this.renderBarChart();  // ensure chart exists once data is in
+          this.renderBarChart();
         } catch (error) {
           console.error(error);
         }
@@ -264,6 +323,7 @@ $(document).ready(function () {
         const brands = new Set();
         const platforms = new Set();
         const dates = new Set();
+        const departments = new Set();
 
         this.profileData.forEach(item => {
           if (item.report) reports.add(item.report);
@@ -273,6 +333,7 @@ $(document).ready(function () {
           }
           if (item.brand) brands.add(item.brand);
           if (item.platform) platforms.add(item.platform);
+          if (item.department) departments.add(item.department);
         });
 
         this.uniqueOptions = {
@@ -281,6 +342,7 @@ $(document).ready(function () {
           brands: Array.from(brands),
           platforms: Array.from(platforms),
           dates: Array.from(dates),
+          departments: Array.from(departments)
         };
       },
 
@@ -297,7 +359,7 @@ $(document).ready(function () {
         this.groupedData = grouped;
       },
 
-      // ===== Charts =====
+      // -------- Charts ----------
       prepareBarChartData() {
         const performerCounts = {};
         this.filteredData.forEach(item => {
@@ -336,17 +398,21 @@ $(document).ready(function () {
         this.barChartInstance.update();
       },
 
-      // ===== Excel Export (grouped summary) =====
+      // -------- Excel Export (grouped summary) ----------
       exportGroupedToExcel() {
-        // Build rows: Performed By, Report, Count, Target, Balance, Percentage
-        const rows = [['Performed By', 'Report', 'Count', 'Target', 'Balance', 'Achieved %']];
+        const rows = [['Performed By', 'Report', 'Count', 'Target', 'Balance', 'Achieved %', 'Department']];
         Object.keys(this.groupedData).forEach(person => {
           Object.keys(this.groupedData[person]).forEach(report => {
             const count = this.groupedData[person][report];
             const target = this.getTarget(person, report);
             const balance = target - count;
             const pct = target ? (count / target * 100).toFixed(1) + '%' : '0%';
-            rows.push([person, report, count, target, balance, pct]);
+
+            // find one sample row for department display (first match)
+            const sample = this.filteredData.find(r => r.performed_by === person && r.report === report);
+            const dept = sample?.department || '';
+
+            rows.push([person, report, count, target, balance, pct, dept]);
           });
         });
 
@@ -405,8 +471,14 @@ $(document).ready(function () {
         </div>
         <div class="col">
           <label>Date:</label>
-          <!-- This controls the global date filter; affects ALL tables & summaries -->
           <input type="date" class="form-control" v-model="filters.date">
+        </div>
+        <div class="col">
+          <label>Department:</label>
+          <select class="form-control" v-model="filters.department">
+            <option value="">All</option>
+            <option v-for="dept in uniqueOptions.departments" :key="dept" :value="dept">{{ dept }}</option>
+          </select>
         </div>
       </div>
 
@@ -417,7 +489,7 @@ $(document).ready(function () {
         </div>
       </div>
 
-      <!-- Grouped Table -->
+      <!-- Grouped Table (Person & Report) -->
       <div class="table-responsive">
         <div class="d-flex justify-content-between align-items-center">
           <h5 class="mb-2">Grouped by Person & Report</h5>
@@ -493,21 +565,21 @@ $(document).ready(function () {
         </table>
       </div>
 
-      <!-- Daily KPI by Team -->
+      <!-- ✅ Daily KPI by Department -->
       <div class="table-responsive mt-4">
-        <h5>Daily KPI by Team</h5>
+        <h5>Daily KPI by Department</h5>
         <table class="table table-bordered">
           <thead>
             <tr>
-              <th>Team</th>
+              <th>Department</th>
               <th>Date</th>
               <th>Total KPI</th>
             </tr>
           </thead>
           <tbody>
-            <template v-for="(dates, team) in dailyKPIByTeam" :key="team">
-              <tr v-for="(count, date) in dates" :key="team + '-' + date">
-                <td>{{ team }}</td>
+            <template v-for="(dates, dept) in dailyKPIByDepartment" :key="dept">
+              <tr v-for="(count, date) in dates" :key="dept + '-' + date">
+                <td>{{ dept }}</td>
                 <td>{{ date }}</td>
                 <td>{{ count }}</td>
               </tr>
