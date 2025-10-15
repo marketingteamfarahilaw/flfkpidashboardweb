@@ -92,7 +92,23 @@ $(document).ready(function () {
         },
         methods: {
             filterByDateRange() {
-
+                const start = new Date(this.startDate);
+                const end = new Date(this.endDate);
+                end.setHours(23, 59, 59, 999);
+                
+                const inRange = (dateStr) => {
+                    const d = new Date(dateStr);
+                    return d >= start && d <= end;
+                };
+                
+                const s = new Date(this.start), e = new Date(this.end);
+                const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0);
+                const endOfDay   = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23,59,59,999);
+                const inRangeday = (dateStr) => {
+                    if (!dateStr) return false;
+                    const d = new Date(dateStr);
+                    return d >= startOfDay(s) && d <= endOfDay(e);
+                };
             }
         }
     });
