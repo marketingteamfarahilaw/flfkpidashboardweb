@@ -131,7 +131,7 @@ $(document).ready(function () {
       dailyKPIByDepartment() {
         const out = {};
         this.filteredData.forEach(item => {
-          const department = item.department || 'Unassigned';
+          const department = item.customer_department;
           const date = (item.date || '').slice(0, 10);
           if (!out[department]) out[department] = {};
           if (!out[department][date]) out[department][date] = 0;
