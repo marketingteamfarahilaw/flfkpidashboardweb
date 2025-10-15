@@ -58,9 +58,8 @@
     </div>
 
     <div class="container text-center">
-      <h5 class="fw-300 mb-3 text-center">DIGITAL MARKETING DEPARTMENT</h5>
-      <h2 class="mb-3 text-center">MTD MARKETING PERFORMANCE SUMMARY</h2>
-      <h4 class="text-center mb-5">{{ displayRange }}</h4>
+      <h5 class="fw-300 mb-3 text-center">Digital Marketing Department</h5>
+      <h4 class="mb-3 text-center">MTD Metrics & KPI {{ displayRange }}</h4>
     </div>
     
   </div>
