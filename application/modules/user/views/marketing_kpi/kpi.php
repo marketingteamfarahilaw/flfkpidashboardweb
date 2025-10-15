@@ -285,8 +285,8 @@ $(document).ready(function () {
         try {
           const urls = [
             'http://31.97.43.196/kpidashboardapi/kpi/show',
-            'http://31.97.43.196/kpidashboardapi/kpi/fetchGBPTask',
-            'http://31.97.43.196/kpidashboardapi/kpi/fetchSocMedTask'
+            'http://31.97.43.196/kpidashboardapi/kpi/getGraphicsTeam',
+            'http://31.97.43.196/kpidashboardapi/kpi/content'
           ];
           const responses = await Promise.all(urls.map(url => axios.get(url, CONFIG.HEADER)));
           const mergedData = responses.flatMap(res => res?.data?.response || []);
