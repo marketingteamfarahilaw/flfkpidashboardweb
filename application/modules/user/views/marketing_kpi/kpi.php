@@ -402,14 +402,14 @@
 
             async getProfileDetail() {
                 try {
-                    let response = await axios.get(endPoints.KPI, CONFIG.HEADER);
+                    let response = await axios.get('http://31.97.43.196/kpidashboardapi/kpi/content', CONFIG.HEADER);
                     return response;
                 } catch (error) {
                     console.log(error);
                 }
             },
 
-            async setLawyers() {
+            async setKPI() {
                 try {
                     let result = await this.getProfileDetail();
                     this.profileData = result.data.response;
@@ -467,7 +467,7 @@
 
         },
         mounted() {
-            this.setLawyers().then(() => {
+            this.setKPI().then(() => {
                 this.renderBarChart(); // Create chart after data loads
             });
         }
