@@ -70,7 +70,9 @@ $(document).ready(function () {
   new Vue({
     el: '#app',
         data: {
-            
+            startDate: '',
+            endDate: '',
+            entries: [],
         },
         computed: {
             displayRange() {
