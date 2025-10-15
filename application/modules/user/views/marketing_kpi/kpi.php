@@ -270,7 +270,7 @@ $(document).ready(function () {
           const index = {};
           users.forEach(u => {
             const first = this.normalize(u.first_name || u.firstname || u.given_name);
-            const dept  = u.department || u.team || u.role || 'Unassigned';
+            const dept  = u.customer_department;
             if (first) index[first] = dept;
           });
           this.firstNameDeptIndex = index;
