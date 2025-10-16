@@ -74,7 +74,7 @@ $(document).ready(function () {
               (item.brand && item.brand.toLowerCase().includes(search)) ||
               (item.platform && item.platform.toLowerCase().includes(search)) ||
               (item.notes && item.notes.toLowerCase().includes(search)) ||
-              (item.customer_department && item.customer_department.toLowerCase().includes(search))
+              (item.department && item.department.toLowerCase().includes(search))
             );
 
             // Normalize date to YYYY-MM-DD for strict equality against <input type="date">
@@ -82,8 +82,8 @@ $(document).ready(function () {
               (String(item.date).slice(0, 10) === String(this.filters.date).slice(0, 10));
 
             // Optional filter by department
-            const matchesDept = !this.filters.customer_department ||
-              (item.customer_department === this.filters.customer_department);
+            const matchesDept = !this.filters.department ||
+              (item.department === this.filters.department);
 
             return (
               item.report !== 'TLC' &&              // keep excluding TLC if that’s intended
@@ -131,7 +131,7 @@ $(document).ready(function () {
       dailyKPIByDepartment() {
         const out = {};
         this.filteredData.forEach(item => {
-          const department = item.customer_department;
+          const department = item.department || 'Unassigned';
           const date = (item.date || '').slice(0, 10);
           if (!out[department]) out[department] = {};
           if (!out[department][date]) out[department][date] = 0;
@@ -187,11 +187,10 @@ $(document).ready(function () {
       attachDepartmentsToKPI(kpiArray) {
         return kpiArray.map(item => {
           const candidate =
-            this.firstWord(item.seoTask) ||
             this.firstWord(item.performed_by) ||
             this.firstWord(item.created_by);
 
-          const dept = this.firstNameDeptIndex[candidate];
+          const dept = this.firstNameDeptIndex[candidate] || 'Unassigned';
           return { ...item, department: dept };
         });
       },
@@ -270,8 +269,8 @@ $(document).ready(function () {
           // Build first_name -> department index (normalized)
           const index = {};
           users.forEach(u => {
-            const first = this.normalize(u.customer_first_name);
-            const dept  = u.customer_department;
+            const first = this.normalize(u.first_name || u.firstname || u.given_name);
+            const dept  = u.department || u.team || u.role || 'Unassigned';
             if (first) index[first] = dept;
           });
           this.firstNameDeptIndex = index;
