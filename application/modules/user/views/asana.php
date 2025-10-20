@@ -57,6 +57,7 @@
   #overallBar{ width:800px!important; margin:0 auto!important; }
   .chart-box{ position:relative; height:500px; }
   .bar-box{ height:340px; }
+  #performedByChart { margin: 0 auto; }
   @media(max-width: 992px){
     .grid-3{ grid-template-columns:1fr; }
     .kpi-wrap{ max-width:100%; }
