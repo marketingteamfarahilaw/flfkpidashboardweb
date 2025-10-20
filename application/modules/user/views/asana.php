@@ -64,7 +64,36 @@
   .grid-3{
     display:grid; grid-template-columns:260px 1fr 360px; gap:26px; align-items:center;
   }
-  .chart-box{ position:relative; height:320px; }
+  #overallBar {
+    width: 800px!important;
+    margin: 0 auto!important;
+  }
+  .chart-box {
+    position: relative;
+    height: 500px;
+  }
+
+  .chart-center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .chart-center-title {
+    font-weight: 800;
+    font-size: 16px;
+    color: #2d3b4a;
+    line-height: 1.1;
+  }
+
+  .chart-center-sub {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.2;
+  }
   .bar-box{ height:340px; }
   @media(max-width: 992px){
     .grid-3{ grid-template-columns:1fr; }
@@ -119,12 +148,22 @@
         </div>
 
         <!-- CENTER: Donut -->
-        <div class="chart-box">
+        <!-- <div class="chart-box">
           <canvas id="performedByChart"></canvas>
           <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;">
             <div style="text-align:center;">
               <div style="font-weight:800; font-size:14px; color:#2d3b4a;">Tasks</div>
               <div style="font-size:12px; color:var(--muted);">Completed<br/>By Performer</div>
+            </div>
+          </div>
+        </div> -->
+
+        <div class="chart-box">
+          <canvas id="performedByChart"></canvas>
+          <div class="chart-center-text">
+            <div>
+              <div class="chart-center-title">Tasks</div>
+              <div class="chart-center-sub">Completed<br>By Performer</div>
             </div>
           </div>
         </div>
