@@ -75,7 +75,7 @@
 <section class="content" id="app">
   <div class="container-fluid pt-3 pl-md-2 pr-md-2 pl-md-5 pr-md-5">
 
-    <h4 class="content-title mb-3">ASANA Task Overview</h4>
+    <h2 class="content-title mb-3">ASANA Task Overview</h2>
 
     <!-- Filters (kept but compact) -->
     <div class="card-muted mb-3">
