@@ -55,7 +55,7 @@
     display:grid; grid-template-columns:260px 1fr 360px; gap:26px; align-items:center;
   }
   #overallBar{ width:800px!important; margin:0 auto!important; }
-  .chart-box{ position:relative; height:500px; }
+  .chart-box{ position:relative; height:300px; }
   .bar-box{ height:340px; }
   #performedByChart { margin: 0 auto; }
   @media(max-width: 992px){
