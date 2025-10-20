@@ -30,29 +30,19 @@
   .card-muted{
     background:var(--card); border:1px solid var(--line); border-radius:14px; padding:24px;
   }
-  .legend-list{
-    list-style:none; margin:0; padding:0;
-  }
+  .legend-list{ list-style:none; margin:0; padding:0; }
   .legend-item{
     display:flex; align-items:center; margin:8px 0;
     font-size:13px; color:var(--muted); font-weight:700;
   }
-  .swatch{
-    width:22px; height:8px; border-radius:2px; margin-right:10px;
-  }
+  .swatch{ width:22px; height:8px; border-radius:2px; margin-right:10px; }
 
-  .kpi-wrap{
-    display:flex; flex-direction:column; gap:22px; max-width:340px;
-  }
-  .kpi-block{
-    background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 18px 16px;
-  }
+  .kpi-wrap{ display:flex; flex-direction:column; gap:22px; max-width:340px; }
+  .kpi-block{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 18px 16px; }
   .kpi-label{ font-size:13px; color:var(--muted); margin:0 0 4px; }
   .kpi-value{ font-size:44px; font-weight:900; color:var(--ink); line-height:1; }
 
-  .section-title{
-    text-align:center; font-weight:900; text-transform:uppercase; margin:8px 0 18px;
-  }
+  .section-title{ text-align:center; font-weight:900; text-transform:uppercase; margin:8px 0 18px; }
 
   /* table styling like the mock */
   .matrix-title{ text-align:center; margin:18px 0 10px; text-transform:uppercase; font-weight:900; }
@@ -64,40 +54,13 @@
   .grid-3{
     display:grid; grid-template-columns:260px 1fr 360px; gap:26px; align-items:center;
   }
-  #overallBar {
-    width: 800px!important;
-    margin: 0 auto!important;
-  }
-  .chart-box {
-    position: relative;
-    height: 500px;
-  }
-
-  .chart-center-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    pointer-events: none;
-  }
-
-  .chart-center-title {
-    font-weight: 800;
-    font-size: 16px;
-    color: #2d3b4a;
-    line-height: 1.1;
-  }
-
-  .chart-center-sub {
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.2;
-  }
+  #overallBar{ width:800px!important; margin:0 auto!important; }
+  .chart-box{ position:relative; height:500px; }
   .bar-box{ height:340px; }
   @media(max-width: 992px){
     .grid-3{ grid-template-columns:1fr; }
     .kpi-wrap{ max-width:100%; }
+    #overallBar{ width:100%!important; }
   }
 </style>
 
@@ -147,25 +110,9 @@
           </ul>
         </div>
 
-        <!-- CENTER: Donut -->
-        <!-- <div class="chart-box">
-          <canvas id="performedByChart"></canvas>
-          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;">
-            <div style="text-align:center;">
-              <div style="font-weight:800; font-size:14px; color:#2d3b4a;">Tasks</div>
-              <div style="font-size:12px; color:var(--muted);">Completed<br/>By Performer</div>
-            </div>
-          </div>
-        </div> -->
-
+        <!-- CENTER: Donut (text is drawn INSIDE via plugin) -->
         <div class="chart-box">
           <canvas id="performedByChart"></canvas>
-          <div class="chart-center-text">
-            <div>
-              <div class="chart-center-title">Tasks</div>
-              <div class="chart-center-sub">Completed<br>By Performer</div>
-            </div>
-          </div>
         </div>
 
         <!-- RIGHT: KPIs -->
@@ -173,16 +120,10 @@
           <div class="kpi-block">
             <p class="kpi-label">Results As To Date (ALL)</p>
             <div class="kpi-value">{{ overallCompletion }}%</div>
-            <!-- <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.
-            </p> -->
           </div>
           <div class="kpi-block">
             <p class="kpi-label">Target/Goal (ALL)</p>
             <div class="kpi-value">{{ targetGoal }}%</div>
-            <!-- <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.
-            </p> -->
           </div>
         </div>
       </div>
@@ -300,15 +241,14 @@ $(document).ready(function () {
         return Math.round((done/f.length)*100);
       }
     },
-    watch:{
-      filteredTasks(){ this.renderAll(); }
-    },
+    watch:{ filteredTasks(){ this.renderAll(); } },
     methods:{
       fmt(d){ const y=d.getFullYear(), m=('0'+(d.getMonth()+1)).slice(-2), day=('0'+d.getDate()).slice(-2); return `${y}-${m}-${day}`; },
       setMTD(){ const t=new Date(), first=new Date(t.getFullYear(), t.getMonth(), 1); this.filters.startDate=this.fmt(first); this.filters.endDate=this.fmt(t); },
       clearDateRange(){ this.filters.startDate=''; this.filters.endDate=''; },
       sortBy(key){ if(this.sortKey===key) this.sortAsc=!this.sortAsc; else { this.sortKey=key; this.sortAsc=true; } },
       toggleDetail(p){ this.$set(this.expanded,p,!this.expanded[p]); },
+
       async fetchData(){
         const res = await fetch("http://31.97.43.196/kpidashboardapi/kpi/getGraphicsTeam", CONFIG.HEADER);
         const json = await res.json();
@@ -325,6 +265,7 @@ $(document).ready(function () {
           this.$nextTick(this.renderAll);
         }
       },
+
       exportToExcel(){
         const data = this.filteredTasks.map(t=>({
           Title: t.title,
@@ -342,6 +283,31 @@ $(document).ready(function () {
 
       /* ================== CHARTS ================== */
       buildDonut(){
+        // plugin that draws center text INSIDE the donut
+        const centerTextPlugin = {
+          id: 'centerTextPlugin',
+          afterDraw: (chart) => {
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return;
+            const cx = (chartArea.left + chartArea.right) / 2;
+            const cy = (chartArea.top + chartArea.bottom) / 2;
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.fillStyle = '#2d3b4a';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText('Tasks', cx, cy - 10);
+
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = '#607489';
+            ctx.fillText('Completed', cx, cy + 8);
+            ctx.fillText('By Performer', cx, cy + 22);
+            ctx.restore();
+          }
+        };
+
         // counts per performer
         const counts = this.filteredTasks.reduce((acc,t)=>{
           const k=t.performed_by||'Unassigned';
@@ -356,9 +322,12 @@ $(document).ready(function () {
           type:'doughnut',
           data:{ labels, datasets:[{ data, backgroundColor:this.donutColors, borderWidth:0 }] },
           options:{
-            cutout:'58%',
-            plugins:{ legend:{ display:false } }
-          }
+            cutout:'62%',                 // adjust hole size if needed
+            plugins:{ legend:{ display:false } },
+            maintainAspectRatio:true,
+            responsive:true
+          },
+          plugins:[centerTextPlugin]
         });
       },
 
@@ -368,7 +337,6 @@ $(document).ready(function () {
         const today = new Date();
 
         this.filteredTasks.forEach(t=>{
-          // month derived from completed_at (if present) else due_on
           const basis = t.completed_at || t.due_on;
           if(!basis) return;
           const key = basis.slice(0,7); // YYYY-MM
@@ -378,13 +346,9 @@ $(document).ready(function () {
           if(t.completed_at && String(t.completed_at).trim()!==''){
             buckets[key].complete++;
           } else {
-            // classify as progress vs incomplete
             const due = t.due_on ? new Date(t.due_on) : null;
-            if(due && due.getTime() >= today.getTime()){
-              buckets[key].progress++;
-            } else {
-              buckets[key].incomplete++;
-            }
+            if(due && due.getTime() >= today.getTime()) buckets[key].progress++;
+            else buckets[key].incomplete++;
           }
         });
 
@@ -416,10 +380,7 @@ $(document).ready(function () {
         });
       },
 
-      renderAll(){
-        this.buildDonut();
-        this.buildBar();
-      }
+      renderAll(){ this.buildDonut(); this.buildBar(); }
     },
     mounted(){ this.fetchData(); }
   });
