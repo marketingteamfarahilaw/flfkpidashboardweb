@@ -134,16 +134,16 @@
           <div class="kpi-block">
             <p class="kpi-label">Results As To Date (ALL)</p>
             <div class="kpi-value">{{ overallCompletion }}%</div>
-            <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">
+            <!-- <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.
-            </p>
+            </p> -->
           </div>
           <div class="kpi-block">
             <p class="kpi-label">Target/Goal (ALL)</p>
             <div class="kpi-value">{{ targetGoal }}%</div>
-            <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">
+            <!-- <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.
-            </p>
+            </p> -->
           </div>
         </div>
       </div>
