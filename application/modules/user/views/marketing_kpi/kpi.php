@@ -47,7 +47,7 @@
 <section class="content" id="app">
   <div class="container-fluid">
 
-    <h4 class="fw-300 mb-3">Department Marketing KPI</h4>
+    <h3 class="section-title">Department Marketing KPI</h3>
 
     <!-- FILTERS -->
     <div class="mb-3">
