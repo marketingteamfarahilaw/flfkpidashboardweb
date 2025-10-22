@@ -281,7 +281,11 @@
 
 <script>
 /* ---- Axios header stub (edit/remove as needed) ---- */
-const API_HEADERS = {}; // e.g., { headers: { Authorization: 'Bearer …' } };
+const API_HEADERS = {
+  headers: {
+    Authorization: 'Basic ' + btoa('FLF:FLF@P!')
+  }
+}; // e.g., { headers: { Authorization: 'Bearer …' } };
 const DONUT_COLORS = ['#071e37','#144468','#1b5f8a','#217ba9','#695c4a','#a38776','#c2aa91','#b58f44','#d8ac54','#e3cf91'];
 
 new Vue({
