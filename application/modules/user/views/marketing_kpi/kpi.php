@@ -10,8 +10,6 @@
 <style>
   :root{
     --ink:#0b2239; --muted:#607489; --card:#f6f7f9; --line:#e8edf3;
-    --c1:#071e37; --c2:#144468; --c3:#1b5f8a; --c4:#217ba9; --c5:#695c4a;
-    --c6:#a38776; --c7:#c2aa91; --c8:#b58f44; --c9:#d8ac54; --c10:#e3cf91;
   }
   .container-fluid{padding:24px}
   .panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
@@ -20,7 +18,7 @@
   .panel-body{padding:20px}
   .grid{display:grid;gap:18px}
   .grid-2{grid-template-columns: 2fr 1.2fr}
-  .legend{display:grid;grid-template-columns: 16px 1fr;gap:10px 12px;font-size:12px;color:var(--ink)}
+  .legend{display:grid;grid-template-columns: 16px 1fr;gap:10px 12px;font-size:12px;color:var(--ink);max-height:300px;overflow:auto}
   .legend > i{width:16px;height:16px;border-radius:4px;display:inline-block}
   .muted{color:var(--muted);font-size:12px;line-height:1.4}
   .kpi-bubble{font-size:56px;font-weight:900;color:#1b2a41;margin:0}
@@ -36,7 +34,7 @@
   .btn-ghost{background:#fff;border:1px solid var(--line);color:#0b2239}
   .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff}
   .stack-legend{display:flex;gap:14px;align-items:center}
-  .stack-legend span{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+  .stack-legend span{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:#6b7280}
   .swatch{width:14px;height:14px;border-radius:3px;display:inline-block}
   .form-control{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
   .row{display:flex;gap:12px;flex-wrap:wrap}
@@ -47,7 +45,7 @@
 <section class="content" id="app">
   <div class="container-fluid">
 
-    <h3 class="section-title">Department Marketing KPI</h3>
+    <h4 class="fw-300 mb-3">Department Marketing KPI</h4>
 
     <!-- FILTERS -->
     <div class="mb-3">
@@ -99,21 +97,15 @@
     <div class="panel grid grid-2">
       <div class="panel-body">
         <h4 class="panel-title">Tasks Performed by (Individual)</h4>
-        <div class="grid" style="grid-template-columns: 220px 1fr;">
-          <!-- Legend -->
+        <div class="grid" style="grid-template-columns: 260px 1fr;">
+          <!-- ✅ Dynamic Legend (loops all KPI members) -->
           <div>
             <div class="muted" style="margin:6px 0 10px">Digital Marketing Members</div>
             <div class="legend">
-              <i style="background:var(--c1)"></i><span>071e37</span>
-              <i style="background:var(--c2)"></i><span>144468</span>
-              <i style="background:var(--c3)"></i><span>1b5f8a</span>
-              <i style="background:var(--c4)"></i><span>217ba9</span>
-              <i style="background:var(--c5)"></i><span>695c4a</span>
-              <i style="background:var(--c6)"></i><span>a38776</span>
-              <i style="background:var(--c7)"></i><span>c2aa91</span>
-              <i style="background:var(--c8)"></i><span>b58f44</span>
-              <i style="background:var(--c9)"></i><span>d8ac54</span>
-              <i style="background:var(--c10)"></i><span>e3cf91</span>
+              <template v-for="name in memberList" :key="name">
+                <i :style="{background: memberColor(name)}"></i>
+                <span>{{ name || 'Unknown' }}</span>
+              </template>
             </div>
           </div>
 
@@ -158,17 +150,140 @@
       </div>
     </div>
 
+    <!-- BOTTOM: DATA MATRIX TABLE -->
+    <div class="panel" style="margin-top:18px">
+      <div class="panel-header">
+        <h4 class="panel-title">Data Matrix Table</h4>
+      </div>
+      <div class="panel-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Performed By</th>
+                <th>Task Count</th>
+                <th>Toggle View</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(reports, person) in groupedData" :key="person">
+                <td><strong>{{ person }}</strong></td>
+                <td>{{ Object.values(reports).reduce((t,c)=>t+c,0) }}</td>
+                <td>
+                  <button class="btn btn-ghost" @click="toggleDetails(person, '__ALL__')">
+                    {{ (selectedRow.person===person && selectedRow.report==='__ALL__') ? 'Hide' : 'View' }}
+                  </button>
+                </td>
+              </tr>
+
+              <!-- Expanded person view -->
+              <tr v-if="selectedRow.report==='__ALL__' && groupedData[selectedRow.person]">
+                <td colspan="3">
+                  <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                      <thead>
+                        <tr>
+                          <th>Report</th>
+                          <th>Count</th>
+                          <th>Target</th>
+                          <th>Balance</th>
+                          <th>Achieved %</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(count, report) in groupedData[selectedRow.person]" :key="report" @click="toggleDetails(selectedRow.person, report)" style="cursor:pointer">
+                          <td>{{ report }}</td>
+                          <td>{{ count }}</td>
+                          <td>{{ getTarget(selectedRow.person, report) }}</td>
+                          <td>{{ getBalance(selectedRow.person, report) }}</td>
+                          <td>{{ getPercentage(selectedRow.person, report) }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- Nested detail list (when a report is clicked) -->
+                  <div v-if="selectedRow.report !== '__ALL__'">
+                    <div class="divider"></div>
+                    <div class="grid" style="grid-template-columns: 1fr auto;align-items:center;margin-bottom:8px">
+                      <input class="form-control form-control-sm" v-model="detailSearch" placeholder="Search in details…">
+                      <div class="pill">Page {{ detailPage }} / {{ detailTotalPages() }}</div>
+                    </div>
+                    <div class="table-responsive">
+                      <table class="table table-bordered table-sm">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Title</th>
+                            <th>Link</th>
+                            <th>Language</th>
+                            <th>Notes</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="item in paginatedDetailList()" :key="item.id">
+                            <td>{{ item.date }}</td>
+                            <td>{{ item.title }}</td>
+                            <td><a :href="item.link" target="_blank" rel="noopener">Open</a></td>
+                            <td>{{ item.language }}</td>
+                            <td>{{ item.note }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <div class="grid" style="grid-template-columns: auto auto; justify-content:space-between; margin-top:10px">
+                        <button class="btn btn-primary" @click="detailPage--" :disabled="detailPage===1">Previous</button>
+                        <button class="btn btn-primary" @click="detailPage++" :disabled="detailPage===detailTotalPages()">Next</button>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Daily KPI by Department -->
+        <h5 class="panel-title" style="margin-bottom:10px">Daily KPI by Department</h5>
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead><tr><th>Department</th><th>Date</th><th>Total KPI</th></tr></thead>
+            <tbody>
+              <template v-for="(dates, dept) in dailyKPIByDepartment" :key="dept">
+                <tr v-for="(count, date) in dates" :key="dept+'-'+date">
+                  <td>{{ dept }}</td>
+                  <td>{{ date }}</td>
+                  <td>{{ count }}</td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid" style="grid-template-columns:auto auto;justify-content:space-between;margin-top:14px">
+          <button class="btn btn-primary" @click="exportGroupedToExcel">Export Summary (Excel)</button>
+          <span class="note">* All charts & tables respect the filters above.</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
 <script>
-/* ---- Axios header stub (edit/remove as needed) ---- */
+/* ---- Basic Auth for your API ---- */
 const API_HEADERS = {
   headers: {
     Authorization: 'Basic ' + btoa('FLF:FLF@P!')
   }
-}; // e.g., { headers: { Authorization: 'Bearer …' } };
-const DONUT_COLORS = ['#071e37','#144468','#1b5f8a','#217ba9','#695c4a','#a38776','#c2aa91','#b58f44','#d8ac54','#e3cf91'];
+};
+
+/* A long palette; we cycle if you have more members */
+const COLOR_PALETTE = [
+  '#071e37','#144468','#1b5f8a','#217ba9','#695c4a','#a38776','#c2aa91','#b58f44','#d8ac54','#e3cf91',
+  '#4f46e5','#10b981','#ef4444','#f59e0b','#0ea5e9','#8b5cf6','#14b8a6','#f43f5e','#22c55e','#64748b'
+];
 
 new Vue({
   el: '#app',
@@ -181,31 +296,12 @@ new Vue({
     profileData: [],
     usersDirectory: [],
     firstNameDeptIndex: {},
-
     groupedData: {},
 
-    // Filters
-    filters: {
-      search: '',
-      report: '',
-      month: '',
-      brand: '',
-      date: '',
-      platform: '',
-      department: '',
-    },
+    filters: { search:'', report:'', month:'', brand:'', date:'', platform:'', department:'' },
 
-    // Dropdown options
-    uniqueOptions: {
-      reports: [],
-      months: [],
-      brands: [],
-      platforms: [],
-      dates: [],
-      departments: [],
-    },
+    uniqueOptions: { reports:[], months:[], brands:[], platforms:[], dates:[], departments:[] },
 
-    // Per-report targets (fallback used if key not found)
     targetData: {
       'Blog Optimized': 25,
       'Blog Published': 50,
@@ -217,17 +313,13 @@ new Vue({
     },
 
     webdevEOW: '',
-
-    // Chart instances
     donutChartInstance: null,
     statusBarInstance: null
   },
 
   computed: {
-    // Entire dashboard should rely on filteredData
     filteredData() {
       const search = (this.filters.search || '').toLowerCase();
-
       return this.profileData
         .filter(item => {
           const monthName = item.date ? new Date(item.date).toLocaleString('default', { month: 'long' }) : '';
@@ -239,13 +331,8 @@ new Vue({
             (item.notes && item.notes.toLowerCase().includes(search)) ||
             (item.department && item.department.toLowerCase().includes(search))
           );
-
-          const sameDate = !this.filters.date ||
-            (String(item.date).slice(0, 10) === String(this.filters.date).slice(0, 10));
-
-          const matchesDept = !this.filters.department ||
-            (item.department === this.filters.department);
-
+          const sameDate = !this.filters.date || (String(item.date).slice(0,10) === String(this.filters.date).slice(0,10));
+          const matchesDept = !this.filters.department || (item.department === this.filters.department);
           return (
             item.report !== 'TLC' &&
             matchesSearch &&
@@ -253,42 +340,18 @@ new Vue({
             (!this.filters.month || monthName === this.filters.month) &&
             (!this.filters.brand || item.brand === this.filters.brand) &&
             (!this.filters.platform || item.platform === this.filters.platform) &&
-            sameDate &&
-            matchesDept
+            sameDate && matchesDept
           );
         })
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
+        .sort((a,b)=> new Date(b.date)-new Date(a.date));
     },
 
-    // Weekly summary by person (kept in case you need it elsewhere)
-    weeklyDataByPerson() {
-      const today = new Date();
-      const startOfWeek = new Date(today);
-      const dayOfWeek = today.getDay();
-      const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-      startOfWeek.setDate(today.getDate() - diffToMonday);
-      startOfWeek.setHours(0, 0, 0, 0);
-
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
-
-      const result = {};
-      this.filteredData.forEach(item => {
-        const d = new Date(item.date);
-        if (d >= startOfWeek && d <= endOfWeek) {
-          const person = item.performed_by || 'Unknown';
-          const report = item.report;
-          if (!result[person]) result[person] = { total: 0, reports: {} };
-          result[person].total++;
-          if (!result[person].reports[report]) result[person].reports[report] = 0;
-          result[person].reports[report]++;
-        }
-      });
-      return result;
+    /* ✅ Dynamic member list pulled from filtered data (sorted) */
+    memberList(){
+      const set = new Set(this.filteredData.map(i => i.performed_by || 'Unknown'));
+      return Array.from(set).sort((a,b)=>a.localeCompare(b));
     },
 
-    // Daily KPI by Department
     dailyKPIByDepartment() {
       const out = {};
       this.filteredData.forEach(item => {
@@ -301,30 +364,6 @@ new Vue({
       return out;
     },
 
-    // Month-to-date summary (unused in UI but available)
-    mtdData() {
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-
-      const filteredMTD = this.filteredData.filter(item => {
-        const d = new Date(item.date);
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-      });
-
-      const totalReports = filteredMTD.length;
-      const uniquePerformers = new Set(filteredMTD.map(i => i.performed_by)).size;
-
-      const reportCounts = {};
-      filteredMTD.forEach(i => {
-        if (!reportCounts[i.report]) reportCounts[i.report] = 0;
-        reportCounts[i.report]++;
-      });
-
-      return { totalReports, uniquePerformers, reportCounts };
-    },
-
-    // KPI % bubbles at the right of donut
     overallCompletion(){
       let achieved=0, target=0;
       Object.keys(this.groupedData || {}).forEach(person=>{
@@ -340,7 +379,6 @@ new Vue({
       return {achieved:pct, remaining:Math.max(0,100-pct)};
     },
 
-    // Buckets for stacked bar
     statusBuckets(){
       const out={};
       this.filteredData.forEach(it=>{
@@ -365,9 +403,18 @@ new Vue({
   },
 
   methods: {
-    // -------- Helpers ----------
     normalize(val) { return String(val || '').trim().toLowerCase(); },
     firstWord(name) { return this.normalize(name).split(/\s+/)[0] || ''; },
+
+    /* ✅ Deterministic color for a member */
+    memberColor(name){
+      const idx = Math.abs(this.hashCode(name || 'Unknown')) % COLOR_PALETTE.length;
+      return COLOR_PALETTE[idx];
+    },
+    hashCode(str){
+      let h=0; for(let i=0;i<str.length;i++){ h=((h<<5)-h)+str.charCodeAt(i); h|=0; }
+      return h;
+    },
 
     attachDepartmentsToKPI(kpiArray) {
       return kpiArray.map(item => {
@@ -396,7 +443,6 @@ new Vue({
     paginatedDetailList() {
       const all = this.getDetailList(this.selectedRow.person, this.selectedRow.report);
       const search = (this.detailSearch || '').toLowerCase();
-
       const filtered = all.filter(item =>
         !search ||
         (item.date && item.date.toLowerCase().includes(search)) ||
@@ -405,14 +451,12 @@ new Vue({
         (item.platform && item.platform.toLowerCase().includes(search)) ||
         (item.notes && item.notes.toLowerCase().includes(search))
       );
-
       const start = (this.detailPage - 1) * this.detailPerPage;
       return filtered.slice(start, start + this.detailPerPage);
     },
     detailTotalPages() {
       const all = this.getDetailList(this.selectedRow.person, this.selectedRow.report);
       const search = (this.detailSearch || '').toLowerCase();
-
       const filtered = all.filter(item =>
         !search ||
         (item.date && item.date.toLowerCase().includes(search)) ||
@@ -421,11 +465,9 @@ new Vue({
         (item.platform && item.platform.toLowerCase().includes(search)) ||
         (item.notes && item.notes.toLowerCase().includes(search))
       );
-
       return Math.ceil(filtered.length / this.detailPerPage) || 1;
     },
 
-    // Targets/Progress
     getTarget(person, report) {
       const key = `${person}-${report}`;
       return this.targetData[key] || this.targetData[report] || 20;
@@ -441,7 +483,6 @@ new Vue({
       return target ? ((count / target) * 100).toFixed(1) + '%' : '0%';
     },
 
-    // -------- Data fetching ----------
     async fetchUsers() {
       try {
         const res = await axios.get('http://31.97.43.196/kpidashboardapi/customer/users', API_HEADERS);
@@ -499,12 +540,8 @@ new Vue({
     },
 
     setFilterOptions() {
-      const reports = new Set();
-      const months = new Set();
-      const brands = new Set();
-      const platforms = new Set();
-      const dates = new Set();
-      const departments = new Set();
+      const reports = new Set(), months = new Set(), brands = new Set(),
+            platforms = new Set(), dates = new Set(), departments = new Set();
 
       this.profileData.forEach(item => {
         if (item.report) reports.add(item.report);
@@ -532,7 +569,6 @@ new Vue({
       this.filteredData.forEach(item => {
         const person = item.performed_by || 'Unknown';
         const report = item.report || 'Unspecified';
-
         if (!grouped[person]) grouped[person] = {};
         if (!grouped[person][report]) grouped[person][report] = 0;
         grouped[person][report]++;
@@ -540,35 +576,37 @@ new Vue({
       this.groupedData = grouped;
     },
 
-    // -------- DONUT (Totals by individual) ----------
+    /* ---- Donut (uses dynamic member colors) ---- */
     donutData(){
-      const counts={};
-      this.filteredData.forEach(i=>{
-        const k=i.performed_by||'Unknown';
-        counts[k]=(counts[k]||0)+1;
-      });
-      return {labels:Object.keys(counts), data:Object.values(counts)};
+      // keep labels exactly as memberList order to match legend colors
+      const labels = this.memberList;
+      const counts = labels.map(name =>
+        this.filteredData.filter(i => (i.performed_by || 'Unknown') === name).length
+      );
+      const colors = labels.map(name => this.memberColor(name));
+      return { labels, data: counts, colors };
     },
     renderDonut(){
       const ctx=document.getElementById('donutChart');
       if(!ctx) return;
       if(this.donutChartInstance) this.donutChartInstance.destroy();
-      const {labels,data}=this.donutData();
+      const {labels,data,colors}=this.donutData();
       this.donutChartInstance=new Chart(ctx,{
         type:'doughnut',
-        data:{labels,datasets:[{data,backgroundColor:DONUT_COLORS,cutout:'55%'}]},
+        data:{labels,datasets:[{data,backgroundColor:colors,cutout:'55%'}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
       });
     },
     updateDonut(){
       if(!this.donutChartInstance) return this.renderDonut();
-      const {labels,data}=this.donutData();
+      const {labels,data,colors}=this.donutData();
       this.donutChartInstance.data.labels=labels;
-      this.donutChartInstance.data.datasets[0].data=data;
+      const ds=this.donutChartInstance.data.datasets[0];
+      ds.data=data; ds.backgroundColor=colors;
       this.donutChartInstance.update();
     },
 
-    // -------- STACKED BAR (Complete/Progress/Incomplete per person) ----------
+    /* ---- Stacked bar ---- */
     statusBarData(){
       const labels=Object.keys(this.statusBuckets);
       const complete=labels.map(l=>this.statusBuckets[l]?.Complete||0);
@@ -606,7 +644,6 @@ new Vue({
       this.statusBarInstance.update();
     },
 
-    // -------- Excel Export (grouped summary) ----------
     exportGroupedToExcel() {
       const rows = [['Performed By', 'Report', 'Count', 'Target', 'Balance', 'Achieved %', 'Department']];
       Object.keys(this.groupedData).forEach(person => {
@@ -615,14 +652,11 @@ new Vue({
           const target = this.getTarget(person, report);
           const balance = target - count;
           const pct = target ? (count / target * 100).toFixed(1) + '%' : '0%';
-
           const sample = this.filteredData.find(r => r.performed_by === person && r.report === report);
           const dept = sample?.department || '';
-
           rows.push([person, report, count, target, balance, pct, dept]);
         });
       });
-
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet(rows);
       XLSX.utils.book_append_sheet(wb, ws, 'Grouped Summary');
