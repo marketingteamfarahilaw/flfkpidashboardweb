@@ -8,9 +8,7 @@
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <style>
-  :root{
-    --ink:#0b2239; --muted:#607489; --card:#f6f7f9; --line:#e8edf3;
-  }
+  :root{ --ink:#0b2239; --muted:#607489; --card:#f6f7f9; --line:#e8edf3; }
   .container-fluid{padding:24px}
   .panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
   .panel-header{padding:18px 20px;border-bottom:1px solid var(--line)}
@@ -18,8 +16,8 @@
   .panel-body{padding:20px}
   .grid{display:grid;gap:18px}
   .grid-2{grid-template-columns: 2fr 1.2fr}
-  .legend{display:grid;grid-template-columns: 16px 1fr;gap:10px 12px;font-size:12px;color:var(--ink);max-height:300px;overflow:auto}
-  .legend > i{width:16px;height:16px;border-radius:4px;display:inline-block}
+  .legend{display:grid;grid-template-columns:16px 1fr;gap:10px 12px;font-size:12px;color:#0b2239;max-height:300px;overflow:auto}
+  .legend>i{width:16px;height:16px;border-radius:4px;display:inline-block}
   .muted{color:var(--muted);font-size:12px;line-height:1.4}
   .kpi-bubble{font-size:56px;font-weight:900;color:#1b2a41;margin:0}
   .subkpi{font-weight:800;font-size:20px;color:#1b2a41;margin:.5rem 0 0}
@@ -98,7 +96,7 @@
       <div class="panel-body">
         <h4 class="panel-title">Tasks Performed by (Individual)</h4>
         <div class="grid" style="grid-template-columns: 260px 1fr;">
-          <!-- ✅ Dynamic Legend (loops all KPI members) -->
+          <!-- Dynamic Legend -->
           <div>
             <div class="muted" style="margin:6px 0 10px">Digital Marketing Members</div>
             <div class="legend">
@@ -108,38 +106,25 @@
               </template>
             </div>
           </div>
-
-          <!-- Donut -->
-          <div class="chart-box">
-            <canvas id="donutChart"></canvas>
-          </div>
+          <div class="chart-box"><canvas id="donutChart"></canvas></div>
         </div>
       </div>
 
-      <!-- KPI right panel -->
       <div class="panel-body" style="display:flex;flex-direction:column;justify-content:center">
         <div class="muted">Results As To Date (ALL)</div>
         <p class="kpi-bubble">{{ overallCompletion.achieved }}%</p>
-        <p class="note" style="max-width:34ch">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
-        </p>
+        <p class="note" style="max-width:34ch">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
         <p class="subkpi">Target/Goal (ALL)</p>
         <p class="kpi-bubble" style="font-size:40px">{{ overallCompletion.remaining }}%</p>
-        <p class="note" style="max-width:34ch">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
-        </p>
+        <p class="note" style="max-width:34ch">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
       </div>
     </div>
 
     <!-- MIDDLE: STACKED BAR -->
     <div class="panel" style="margin-top:18px">
-      <div class="panel-header">
-        <h4 class="panel-title">Total Complete vs Incomplete Tasks (ALL)</h4>
-      </div>
+      <div class="panel-header"><h4 class="panel-title">Total Complete vs Incomplete Tasks (ALL)</h4></div>
       <div class="panel-body">
-        <div class="chart-box">
-          <canvas id="statusBarChart"></canvas>
-        </div>
+        <div class="chart-box"><canvas id="statusBarChart"></canvas></div>
         <div class="divider"></div>
         <div class="stack-legend">
           <span><i class="swatch" style="background:#0b2239"></i> COMPLETE</span>
@@ -152,48 +137,28 @@
 
     <!-- BOTTOM: DATA MATRIX TABLE -->
     <div class="panel" style="margin-top:18px">
-      <div class="panel-header">
-        <h4 class="panel-title">Data Matrix Table</h4>
-      </div>
+      <div class="panel-header"><h4 class="panel-title">Data Matrix Table</h4></div>
       <div class="panel-body">
         <div class="table-responsive">
           <table class="table">
-            <thead>
-              <tr>
-                <th>Performed By</th>
-                <th>Task Count</th>
-                <th>Toggle View</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Performed By</th><th>Task Count</th><th>Toggle View</th></tr></thead>
             <tbody>
               <tr v-for="(reports, person) in groupedData" :key="person">
                 <td><strong>{{ person }}</strong></td>
                 <td>{{ Object.values(reports).reduce((t,c)=>t+c,0) }}</td>
-                <td>
-                  <button class="btn btn-ghost" @click="toggleDetails(person, '__ALL__')">
-                    {{ (selectedRow.person===person && selectedRow.report==='__ALL__') ? 'Hide' : 'View' }}
-                  </button>
-                </td>
+                <td><button class="btn btn-ghost" @click="toggleDetails(person, '__ALL__')">
+                  {{ (selectedRow.person===person && selectedRow.report==='__ALL__') ? 'Hide' : 'View' }}
+                </button></td>
               </tr>
 
-              <!-- Expanded person view -->
               <tr v-if="selectedRow.report==='__ALL__' && groupedData[selectedRow.person]">
                 <td colspan="3">
                   <div class="table-responsive">
                     <table class="table table-bordered table-sm">
-                      <thead>
-                        <tr>
-                          <th>Report</th>
-                          <th>Count</th>
-                          <th>Target</th>
-                          <th>Balance</th>
-                          <th>Achieved %</th>
-                        </tr>
-                      </thead>
+                      <thead><tr><th>Report</th><th>Count</th><th>Target</th><th>Balance</th><th>Achieved %</th></tr></thead>
                       <tbody>
                         <tr v-for="(count, report) in groupedData[selectedRow.person]" :key="report" @click="toggleDetails(selectedRow.person, report)" style="cursor:pointer">
-                          <td>{{ report }}</td>
-                          <td>{{ count }}</td>
+                          <td>{{ report }}</td><td>{{ count }}</td>
                           <td>{{ getTarget(selectedRow.person, report) }}</td>
                           <td>{{ getBalance(selectedRow.person, report) }}</td>
                           <td>{{ getPercentage(selectedRow.person, report) }}</td>
@@ -202,7 +167,6 @@
                     </table>
                   </div>
 
-                  <!-- Nested detail list (when a report is clicked) -->
                   <div v-if="selectedRow.report !== '__ALL__'">
                     <div class="divider"></div>
                     <div class="grid" style="grid-template-columns: 1fr auto;align-items:center;margin-bottom:8px">
@@ -211,15 +175,7 @@
                     </div>
                     <div class="table-responsive">
                       <table class="table table-bordered table-sm">
-                        <thead>
-                          <tr>
-                            <th>Date</th>
-                            <th>Title</th>
-                            <th>Link</th>
-                            <th>Language</th>
-                            <th>Notes</th>
-                          </tr>
-                        </thead>
+                        <thead><tr><th>Date</th><th>Title</th><th>Link</th><th>Language</th><th>Notes</th></tr></thead>
                         <tbody>
                           <tr v-for="item in paginatedDetailList()" :key="item.id">
                             <td>{{ item.date }}</td>
@@ -230,7 +186,7 @@
                           </tr>
                         </tbody>
                       </table>
-                      <div class="grid" style="grid-template-columns: auto auto; justify-content:space-between; margin-top:10px">
+                      <div class="grid" style="grid-template-columns:auto auto;justify-content:space-between;margin-top:10px">
                         <button class="btn btn-primary" @click="detailPage--" :disabled="detailPage===1">Previous</button>
                         <button class="btn btn-primary" @click="detailPage++" :disabled="detailPage===detailTotalPages()">Next</button>
                       </div>
@@ -244,7 +200,7 @@
 
         <div class="divider"></div>
 
-        <!-- Daily KPI by Department -->
+        <!-- ✅ Daily KPI by Department (now resolved by username/email/name from customers/users) -->
         <h5 class="panel-title" style="margin-bottom:10px">Daily KPI by Department</h5>
         <div class="table-responsive">
           <table class="table table-bordered">
@@ -252,9 +208,7 @@
             <tbody>
               <template v-for="(dates, dept) in dailyKPIByDepartment" :key="dept">
                 <tr v-for="(count, date) in dates" :key="dept+'-'+date">
-                  <td>{{ dept }}</td>
-                  <td>{{ date }}</td>
-                  <td>{{ count }}</td>
+                  <td>{{ dept }}</td><td>{{ date }}</td><td>{{ count }}</td>
                 </tr>
               </template>
             </tbody>
@@ -272,34 +226,30 @@
 </section>
 
 <script>
-/* ---- Basic Auth for your API ---- */
-const API_HEADERS = {
-  headers: {
-    Authorization: 'Basic ' + btoa('FLF:FLF@P!')
-  }
-};
+/* ---- Basic Auth ---- */
+const API_HEADERS = { headers: { Authorization: 'Basic ' + btoa('FLF:FLF@P!') } };
 
-/* A long palette; we cycle if you have more members */
-const COLOR_PALETTE = [
-  '#071e37','#144468','#1b5f8a','#217ba9','#695c4a','#a38776','#c2aa91','#b58f44','#d8ac54','#e3cf91',
-  '#4f46e5','#10b981','#ef4444','#f59e0b','#0ea5e9','#8b5cf6','#14b8a6','#f43f5e','#22c55e','#64748b'
-];
+/* Color palette for members */
+const COLOR_PALETTE = ['#071e37','#144468','#1b5f8a','#217ba9','#695c4a','#a38776','#c2aa91','#b58f44','#d8ac54','#e3cf91','#4f46e5','#10b981','#ef4444','#f59e0b','#0ea5e9','#8b5cf6','#14b8a6','#f43f5e','#22c55e','#64748b'];
 
 new Vue({
   el: '#app',
   data: {
     selectedRow: { person: '', report: '' },
-    detailSearch: '',
-    detailPage: 1,
-    detailPerPage: 10,
+    detailSearch: '', detailPage: 1, detailPerPage: 10,
 
     profileData: [],
     usersDirectory: [],
-    firstNameDeptIndex: {},
+
+    // ✅ indices for department resolution
+    usernameDeptIndex: {},    // customer_username (and email prefix) -> department
+    emailDeptIndex: {},       // full email -> department
+    nameDeptIndex: {},        // exact display name -> department
+    firstNameDeptIndex: {},   // first name -> department (fallback)
+
     groupedData: {},
 
     filters: { search:'', report:'', month:'', brand:'', date:'', platform:'', department:'' },
-
     uniqueOptions: { reports:[], months:[], brands:[], platforms:[], dates:[], departments:[] },
 
     targetData: {
@@ -312,7 +262,6 @@ new Vue({
       'Landing Page Optimized': 25
     },
 
-    webdevEOW: '',
     donutChartInstance: null,
     statusBarInstance: null
   },
@@ -329,10 +278,11 @@ new Vue({
             (item.brand && item.brand.toLowerCase().includes(search)) ||
             (item.platform && item.platform.toLowerCase().includes(search)) ||
             (item.notes && item.notes.toLowerCase().includes(search)) ||
-            (item.department && item.department.toLowerCase().includes(search))
+            (this.resolveDepartment(item) && this.resolveDepartment(item).toLowerCase().includes(search))
           );
           const sameDate = !this.filters.date || (String(item.date).slice(0,10) === String(this.filters.date).slice(0,10));
-          const matchesDept = !this.filters.department || (item.department === this.filters.department);
+          const matchesDept = !this.filters.department || (this.resolveDepartment(item) === this.filters.department);
+
           return (
             item.report !== 'TLC' &&
             matchesSearch &&
@@ -346,16 +296,16 @@ new Vue({
         .sort((a,b)=> new Date(b.date)-new Date(a.date));
     },
 
-    /* ✅ Dynamic member list pulled from filtered data (sorted) */
     memberList(){
       const set = new Set(this.filteredData.map(i => i.performed_by || 'Unknown'));
       return Array.from(set).sort((a,b)=>a.localeCompare(b));
     },
 
+    // ✅ Department grouping uses resolveDepartment
     dailyKPIByDepartment() {
       const out = {};
       this.filteredData.forEach(item => {
-        const department = item.department || 'Unassigned';
+        const department = this.resolveDepartment(item) || 'Unassigned';
         const date = (item.date || '').slice(0, 10);
         if (!out[department]) out[department] = {};
         if (!out[department][date]) out[department][date] = 0;
@@ -370,8 +320,7 @@ new Vue({
         Object.keys(this.groupedData[person]).forEach(report=>{
           const count=this.groupedData[person][report]||0;
           const t=this.getTarget(person,report)||0;
-          achieved+=Math.min(count,t);
-          target+=t;
+          achieved+=Math.min(count,t); target+=t;
         });
       });
       if(!target) return {achieved:0, remaining:100};
@@ -403,210 +352,223 @@ new Vue({
   },
 
   methods: {
-    normalize(val) { return String(val || '').trim().toLowerCase(); },
-    firstWord(name) { return this.normalize(name).split(/\s+/)[0] || ''; },
+    normalize(v){ return String(v||'').trim().toLowerCase(); },
+    firstWord(name){ return this.normalize(name).split(/\s+/)[0] || ''; },
+    memberColor(name){ const i=Math.abs(this.hashCode(name||'Unknown'))%COLOR_PALETTE.length; return COLOR_PALETTE[i]; },
+    hashCode(str){ let h=0; for(let i=0;i<str.length;i++){ h=((h<<5)-h)+str.charCodeAt(i); h|=0 } return h; },
 
-    /* ✅ Deterministic color for a member */
-    memberColor(name){
-      const idx = Math.abs(this.hashCode(name || 'Unknown')) % COLOR_PALETTE.length;
-      return COLOR_PALETTE[idx];
-    },
-    hashCode(str){
-      let h=0; for(let i=0;i<str.length;i++){ h=((h<<5)-h)+str.charCodeAt(i); h|=0; }
-      return h;
-    },
-
-    attachDepartmentsToKPI(kpiArray) {
-      return kpiArray.map(item => {
-        const candidate = this.firstWord(item.performed_by) || this.firstWord(item.created_by);
-        const dept = this.firstNameDeptIndex[candidate] || 'Unassigned';
-        return { ...item, department: dept };
-      });
-    },
-
-    toggleDetails(person, report) {
-      if (this.selectedRow.person === person && this.selectedRow.report === report) {
-        this.selectedRow = { person: '', report: '' };
-        this.detailSearch = '';
-      } else {
-        this.selectedRow = { person, report };
-        this.detailPage = 1;
-        this.detailSearch = '';
+    /* === CORE: Resolve department for any KPI row === */
+    resolveDepartment(item){
+      // 1) Try username / user fields
+      const candidateKeys = [
+        'username','user','user_name','created_by_username','performed_by_username'
+      ];
+      for (const k of candidateKeys){
+        const raw = item[k];
+        if (raw){
+          const uname = this.normalize(raw.includes('@') ? raw.split('@')[0] : raw);
+          if (this.usernameDeptIndex[uname]) return this.usernameDeptIndex[uname];
+        }
       }
-    },
-    getDetailList(person, report) {
-      if (report === '__ALL__') return [];
-      return this.filteredData.filter(
-        item => item.performed_by === person && item.report === report
-      );
-    },
-    paginatedDetailList() {
-      const all = this.getDetailList(this.selectedRow.person, this.selectedRow.report);
-      const search = (this.detailSearch || '').toLowerCase();
-      const filtered = all.filter(item =>
-        !search ||
-        (item.date && item.date.toLowerCase().includes(search)) ||
-        (item.brand && item.brand.toLowerCase().includes(search)) ||
-        (item.title && item.title.toLowerCase().includes(search)) ||
-        (item.platform && item.platform.toLowerCase().includes(search)) ||
-        (item.notes && item.notes.toLowerCase().includes(search))
-      );
-      const start = (this.detailPage - 1) * this.detailPerPage;
-      return filtered.slice(start, start + this.detailPerPage);
-    },
-    detailTotalPages() {
-      const all = this.getDetailList(this.selectedRow.person, this.selectedRow.report);
-      const search = (this.detailSearch || '').toLowerCase();
-      const filtered = all.filter(item =>
-        !search ||
-        (item.date && item.date.toLowerCase().includes(search)) ||
-        (item.brand && item.brand.toLowerCase().includes(search)) ||
-        (item.title && item.title.toLowerCase().includes(search)) ||
-        (item.platform && item.platform.toLowerCase().includes(search)) ||
-        (item.notes && item.notes.toLowerCase().includes(search))
-      );
-      return Math.ceil(filtered.length / this.detailPerPage) || 1;
+
+      // 2) Try email fields (full email, or prefix)
+      const emailKeys = ['email','user_email','created_by','performed_by','created_by_email','performed_by_email'];
+      for (const k of emailKeys){
+        const raw = item[k];
+        if (raw && String(raw).includes('@')){
+          const full = this.normalize(raw);
+          const prefix = this.normalize(String(raw).split('@')[0]);
+          if (this.emailDeptIndex[full])   return this.emailDeptIndex[full];
+          if (this.usernameDeptIndex[prefix]) return this.usernameDeptIndex[prefix];
+        }
+      }
+
+      // 3) Try display name exact
+      const display = this.normalize(item.performed_by || item.created_by || item.name);
+      if (display && this.nameDeptIndex[display]) return this.nameDeptIndex[display];
+
+      // 4) Fallback: first name
+      const first = this.firstWord(item.performed_by || item.created_by);
+      if (first && this.firstNameDeptIndex[first]) return this.firstNameDeptIndex[first];
+
+      return 'Unassigned';
     },
 
-    getTarget(person, report) {
-      const key = `${person}-${report}`;
-      return this.targetData[key] || this.targetData[report] || 20;
-    },
-    getBalance(person, report) {
-      const target = this.getTarget(person, report);
-      const count = this.groupedData[person][report];
-      return target - count;
-    },
-    getPercentage(person, report) {
-      const target = this.getTarget(person, report);
-      const count = this.groupedData[person][report];
-      return target ? ((count / target) * 100).toFixed(1) + '%' : '0%';
+    attachDepartmentsToKPI(kpiArray){
+      return kpiArray.map(item => ({ ...item, department: this.resolveDepartment(item) }));
     },
 
-    async fetchUsers() {
-      try {
-        const res = await axios.get('http://31.97.43.196/kpidashboardapi/customer/users', API_HEADERS);
-        const users = res?.data?.response || res?.data || [];
+    toggleDetails(person, report){
+      if (this.selectedRow.person===person && this.selectedRow.report===report){
+        this.selectedRow={person:'',report:''}; this.detailSearch=''; return;
+      }
+      this.selectedRow={person,report}; this.detailPage=1; this.detailSearch='';
+    },
+    getDetailList(person, report){
+      if (report==='__ALL__') return [];
+      return this.filteredData.filter(i => i.performed_by===person && i.report===report);
+    },
+    paginatedDetailList(){
+      const all=this.getDetailList(this.selectedRow.person,this.selectedRow.report);
+      const s=(this.detailSearch||'').toLowerCase();
+      const filtered=all.filter(i=>!s ||
+        (i.date&&i.date.toLowerCase().includes(s)) ||
+        (i.brand&&i.brand.toLowerCase().includes(s)) ||
+        (i.title&&i.title.toLowerCase().includes(s)) ||
+        (i.platform&&i.platform.toLowerCase().includes(s)) ||
+        (i.notes&&i.notes.toLowerCase().includes(s))
+      );
+      const start=(this.detailPage-1)*this.detailPerPage;
+      return filtered.slice(start,start+this.detailPerPage);
+    },
+    detailTotalPages(){
+      const all=this.getDetailList(this.selectedRow.person,this.selectedRow.report);
+      const s=(this.detailSearch||'').toLowerCase();
+      const filtered=all.filter(i=>!s ||
+        (i.date&&i.date.toLowerCase().includes(s)) ||
+        (i.brand&&i.brand.toLowerCase().includes(s)) ||
+        (i.title&&i.title.toLowerCase().includes(s)) ||
+        (i.platform&&i.platform.toLowerCase().includes(s)) ||
+        (i.notes&&i.notes.toLowerCase().includes(s))
+      );
+      return Math.ceil(filtered.length/this.detailPerPage)||1;
+    },
+
+    getTarget(person, report){ const key=`${person}-${report}`; return this.targetData[key]||this.targetData[report]||20; },
+    getBalance(person, report){ const t=this.getTarget(person,report); const c=this.groupedData[person][report]; return t-c; },
+    getPercentage(person, report){ const t=this.getTarget(person,report); const c=this.groupedData[person][report]; return t?((c/t)*100).toFixed(1)+'%':'0%'; },
+
+    /* ---- Fetch users from your CUSTOMERS endpoint (the JSON you showed) ---- */
+    async fetchUsers(){
+      try{
+        const res = await axios.get('http://31.97.43.196/kpidashboardapi/customers/users', API_HEADERS);
+        const users = res?.data?.response || [];
         this.usersDirectory = users;
 
-        const index = {};
-        users.forEach(u => {
-          const first = this.normalize(u.first_name || u.firstname || u.given_name);
-          const dept  = u.department || u.team || u.role || 'Unassigned';
-          if (first) index[first] = dept;
+        const usernameIdx = {};
+        const emailIdx    = {};
+        const nameIdx     = {};
+        const firstIdx    = {};
+
+        users.forEach(u=>{
+          const dept = u.customer_department || 'Unassigned';
+
+          // username map (customer_username); also map email prefix
+          let uname = u.customer_username ? String(u.customer_username) : '';
+          if (uname){
+            const norm = this.normalize(uname.includes('@') ? uname.split('@')[0] : uname);
+            if (norm) usernameIdx[norm] = dept;
+          }
+
+          // email map (full) and prefix
+          if (u.customer_email){
+            const emailFull = this.normalize(u.customer_email);
+            const emailPrefix = this.normalize(u.customer_email.split('@')[0]);
+            if (emailFull)   emailIdx[emailFull] = dept;
+            if (emailPrefix) usernameIdx[emailPrefix] = dept; // treat as username too
+          }
+
+          // display name
+          if (u.name){
+            const disp = this.normalize(u.name);
+            if (disp) nameIdx[disp] = dept;
+            const first = this.normalize(u.name).split(/\s+/)[0];
+            if (first) firstIdx[first] = dept;
+          }
         });
-        this.firstNameDeptIndex = index;
-      } catch (e) {
-        console.error('Users fetch failed:', e);
-        this.usersDirectory = [];
-        this.firstNameDeptIndex = {};
+
+        this.usernameDeptIndex = usernameIdx;
+        this.emailDeptIndex    = emailIdx;
+        this.nameDeptIndex     = nameIdx;
+        this.firstNameDeptIndex= firstIdx;
+
+      }catch(err){
+        console.error('Users fetch failed:', err);
+        this.usernameDeptIndex={}; this.emailDeptIndex={}; this.nameDeptIndex={}; this.firstNameDeptIndex={};
       }
     },
 
-    async fetchKPI() {
-      try {
-        const urls = [
+    async fetchKPI(){
+      try{
+        const urls=[
           'http://31.97.43.196/kpidashboardapi/kpi/show',
           'http://31.97.43.196/kpidashboardapi/kpi/getGraphicsTeam',
           'http://31.97.43.196/kpidashboardapi/kpi/content'
         ];
-        const responses = await Promise.all(urls.map(url => axios.get(url, API_HEADERS)));
-        const mergedData = responses.flatMap(res => res?.data?.response || []);
-        this.webdevEOW = responses?.[0]?.data?.conclusionEOW || '';
-        return mergedData;
-      } catch (error) {
-        console.error('Error fetching KPI data:', error);
+        const responses = await Promise.all(urls.map(url=>axios.get(url, API_HEADERS)));
+        const merged = responses.flatMap(r=>r?.data?.response||[]);
+        return merged;
+      }catch(e){
+        console.error('Error fetching KPI data:', e);
         return [];
       }
     },
 
-    async setKPI() {
-      try {
-        await this.fetchUsers();
-        const rawKPI = await this.fetchKPI();
+    async setKPI(){
+      try{
+        await this.fetchUsers();                 // build maps first
+        const raw = await this.fetchKPI();
 
-        const enriched = this.attachDepartmentsToKPI(rawKPI);
-        this.profileData = enriched;
+        // enrich rows with department via resolver
+        this.profileData = this.attachDepartmentsToKPI(raw);
 
         this.setFilterOptions();
         this.groupRecords();
-        this.$nextTick(() => {
-          this.renderDonut();
-          this.renderStatusBars();
-        });
-      } catch (error) {
-        console.error(error);
-      }
+        this.$nextTick(()=>{ this.renderDonut(); this.renderStatusBars(); });
+      }catch(e){ console.error(e); }
     },
 
-    setFilterOptions() {
-      const reports = new Set(), months = new Set(), brands = new Set(),
-            platforms = new Set(), dates = new Set(), departments = new Set();
-
-      this.profileData.forEach(item => {
+    setFilterOptions(){
+      const reports=new Set(), months=new Set(), brands=new Set(), platforms=new Set(), dates=new Set(), departments=new Set();
+      this.profileData.forEach(item=>{
+        const dept = this.resolveDepartment(item);
         if (item.report) reports.add(item.report);
-        if (item.date) {
-          months.add(new Date(item.date).toLocaleString('default', { month: 'long' }));
-          dates.add(String(item.date).slice(0, 10));
+        if (item.date){
+          months.add(new Date(item.date).toLocaleString('default',{month:'long'}));
+          dates.add(String(item.date).slice(0,10));
         }
         if (item.brand) brands.add(item.brand);
         if (item.platform) platforms.add(item.platform);
-        if (item.department) departments.add(item.department);
+        if (dept) departments.add(dept);
       });
-
       this.uniqueOptions = {
-        reports: Array.from(reports),
-        months: Array.from(months),
-        brands: Array.from(brands),
-        platforms: Array.from(platforms),
-        dates: Array.from(dates),
-        departments: Array.from(departments)
+        reports:[...reports], months:[...months], brands:[...brands], platforms:[...platforms], dates:[...dates], departments:[...departments]
       };
     },
 
-    groupRecords() {
-      const grouped = {};
-      this.filteredData.forEach(item => {
-        const person = item.performed_by || 'Unknown';
-        const report = item.report || 'Unspecified';
-        if (!grouped[person]) grouped[person] = {};
-        if (!grouped[person][report]) grouped[person][report] = 0;
+    groupRecords(){
+      const grouped={};
+      this.filteredData.forEach(item=>{
+        const person=item.performed_by||'Unknown';
+        const report=item.report||'Unspecified';
+        if(!grouped[person]) grouped[person]={};
+        if(!grouped[person][report]) grouped[person][report]=0;
         grouped[person][report]++;
       });
-      this.groupedData = grouped;
+      this.groupedData=grouped;
     },
 
-    /* ---- Donut (uses dynamic member colors) ---- */
+    // Charts
     donutData(){
-      // keep labels exactly as memberList order to match legend colors
-      const labels = this.memberList;
-      const counts = labels.map(name =>
-        this.filteredData.filter(i => (i.performed_by || 'Unknown') === name).length
-      );
-      const colors = labels.map(name => this.memberColor(name));
-      return { labels, data: counts, colors };
+      const labels=this.memberList;
+      const counts=labels.map(name=>this.filteredData.filter(i=>(i.performed_by||'Unknown')===name).length);
+      const colors=labels.map(name=>this.memberColor(name));
+      return {labels,data:counts,colors};
     },
     renderDonut(){
-      const ctx=document.getElementById('donutChart');
-      if(!ctx) return;
+      const ctx=document.getElementById('donutChart'); if(!ctx) return;
       if(this.donutChartInstance) this.donutChartInstance.destroy();
       const {labels,data,colors}=this.donutData();
-      this.donutChartInstance=new Chart(ctx,{
-        type:'doughnut',
-        data:{labels,datasets:[{data,backgroundColor:colors,cutout:'55%'}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
-      });
+      this.donutChartInstance=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,cutout:'55%'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
     },
     updateDonut(){
       if(!this.donutChartInstance) return this.renderDonut();
       const {labels,data,colors}=this.donutData();
       this.donutChartInstance.data.labels=labels;
-      const ds=this.donutChartInstance.data.datasets[0];
-      ds.data=data; ds.backgroundColor=colors;
+      const ds=this.donutChartInstance.data.datasets[0]; ds.data=data; ds.backgroundColor=colors;
       this.donutChartInstance.update();
     },
 
-    /* ---- Stacked bar ---- */
     statusBarData(){
       const labels=Object.keys(this.statusBuckets);
       const complete=labels.map(l=>this.statusBuckets[l]?.Complete||0);
@@ -615,56 +577,41 @@ new Vue({
       return {labels,complete,progress,incomplete};
     },
     renderStatusBars(){
-      const ctx=document.getElementById('statusBarChart');
-      if(!ctx) return;
+      const ctx=document.getElementById('statusBarChart'); if(!ctx) return;
       if(this.statusBarInstance) this.statusBarInstance.destroy();
       const {labels,complete,progress,incomplete}=this.statusBarData();
-      this.statusBarInstance=new Chart(ctx,{
-        type:'bar',
-        data:{
-          labels,
-          datasets:[
-            {label:'Complete', data:complete, backgroundColor:'#0b2239', stack:'s'},
-            {label:'Progress', data:progress, backgroundColor:'#1b5f8a', stack:'s'},
-            {label:'Incomplete', data:incomplete, backgroundColor:'#6ec1e4', stack:'s'}
-          ]
-        },
-        options:{
-          responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-          scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}
-        }
-      });
+      this.statusBarInstance=new Chart(ctx,{type:'bar',data:{labels,datasets:[
+        {label:'Complete',data:complete,backgroundColor:'#0b2239',stack:'s'},
+        {label:'Progress',data:progress,backgroundColor:'#1b5f8a',stack:'s'},
+        {label:'Incomplete',data:incomplete,backgroundColor:'#6ec1e4',stack:'s'}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
     },
     updateStatusBars(){
       if(!this.statusBarInstance) return this.renderStatusBars();
       const {labels,complete,progress,incomplete}=this.statusBarData();
       const ds=this.statusBarInstance.data.datasets;
-      this.statusBarInstance.data.labels=labels;
-      ds[0].data=complete; ds[1].data=progress; ds[2].data=incomplete;
-      this.statusBarInstance.update();
+      this.statusBarInstance.data.labels=labels; ds[0].data=complete; ds[1].data=progress; ds[2].data=incomplete; this.statusBarInstance.update();
     },
 
-    exportGroupedToExcel() {
-      const rows = [['Performed By', 'Report', 'Count', 'Target', 'Balance', 'Achieved %', 'Department']];
-      Object.keys(this.groupedData).forEach(person => {
-        Object.keys(this.groupedData[person]).forEach(report => {
-          const count = this.groupedData[person][report];
-          const target = this.getTarget(person, report);
-          const balance = target - count;
-          const pct = target ? (count / target * 100).toFixed(1) + '%' : '0%';
-          const sample = this.filteredData.find(r => r.performed_by === person && r.report === report);
-          const dept = sample?.department || '';
-          rows.push([person, report, count, target, balance, pct, dept]);
+    exportGroupedToExcel(){
+      const rows=[['Performed By','Report','Count','Target','Balance','Achieved %','Department']];
+      Object.keys(this.groupedData).forEach(person=>{
+        Object.keys(this.groupedData[person]).forEach(report=>{
+          const count=this.groupedData[person][report];
+          const target=this.getTarget(person,report);
+          const balance=target-count;
+          const pct=target?(count/target*100).toFixed(1)+'%':'0%';
+          const sample=this.filteredData.find(r=>r.performed_by===person && r.report===report);
+          const dept=sample?this.resolveDepartment(sample):'';
+          rows.push([person,report,count,target,balance,pct,dept]);
         });
       });
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(rows);
-      XLSX.utils.book_append_sheet(wb, ws, 'Grouped Summary');
-      XLSX.writeFile(wb, 'kpi_grouped_summary.xlsx');
+      const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb,ws,'Grouped Summary'); XLSX.writeFile(wb,'kpi_grouped_summary.xlsx');
     }
   },
 
-  mounted() {
+  mounted(){
     this.setKPI();
     this.$nextTick(()=>{ this.renderDonut(); this.renderStatusBars(); });
   }
