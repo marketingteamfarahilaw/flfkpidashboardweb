@@ -98,7 +98,7 @@
       <div class="panel-body">
         <h4 class="panel-title">Tasks Performed by (Individual)</h4>
         <div class="grid" style="grid-template-columns: 260px 1fr;">
-          <!-- ✅ Dynamic Legend (loops all KPI members) -->
+          <!-- Dynamic Legend -->
           <div>
             <div class="muted" style="margin:6px 0 10px">Digital Marketing Members</div>
             <div class="legend">
@@ -244,7 +244,7 @@
 
         <div class="divider"></div>
 
-        <!-- Daily KPI by Department -->
+        <!-- ✅ Daily KPI by Department (now resolved by username from users API) -->
         <h5 class="panel-title" style="margin-bottom:10px">Daily KPI by Department</h5>
         <div class="table-responsive">
           <table class="table table-bordered">
@@ -279,7 +279,7 @@ const API_HEADERS = {
   }
 };
 
-/* A long palette; we cycle if you have more members */
+/* Colors for members (stable hashing) */
 const COLOR_PALETTE = [
   '#071e37','#144468','#1b5f8a','#217ba9','#695c4a','#a38776','#c2aa91','#b58f44','#d8ac54','#e3cf91',
   '#4f46e5','#10b981','#ef4444','#f59e0b','#0ea5e9','#8b5cf6','#14b8a6','#f43f5e','#22c55e','#64748b'
@@ -295,7 +295,10 @@ new Vue({
 
     profileData: [],
     usersDirectory: [],
-    firstNameDeptIndex: {},
+    firstNameDeptIndex: {},     // fallback
+    usernameDeptIndex: {},      // ✅ primary map: username -> department
+    nameToUsernameIndex: {},    // optional helper if you need it later
+
     groupedData: {},
 
     filters: { search:'', report:'', month:'', brand:'', date:'', platform:'', department:'' },
@@ -332,7 +335,7 @@ new Vue({
             (item.department && item.department.toLowerCase().includes(search))
           );
           const sameDate = !this.filters.date || (String(item.date).slice(0,10) === String(this.filters.date).slice(0,10));
-          const matchesDept = !this.filters.department || (item.department === this.filters.department);
+          const matchesDept = !this.filters.department || (this.resolveDepartment(item) === this.filters.department);
           return (
             item.report !== 'TLC' &&
             matchesSearch &&
@@ -346,16 +349,16 @@ new Vue({
         .sort((a,b)=> new Date(b.date)-new Date(a.date));
     },
 
-    /* ✅ Dynamic member list pulled from filtered data (sorted) */
     memberList(){
       const set = new Set(this.filteredData.map(i => i.performed_by || 'Unknown'));
       return Array.from(set).sort((a,b)=>a.localeCompare(b));
     },
 
+    /* ✅ Department tally now uses resolveDepartment(item) which reads username map */
     dailyKPIByDepartment() {
       const out = {};
       this.filteredData.forEach(item => {
-        const department = item.department || 'Unassigned';
+        const department = this.resolveDepartment(item) || 'Unassigned';
         const date = (item.date || '').slice(0, 10);
         if (!out[department]) out[department] = {};
         if (!out[department][date]) out[department][date] = 0;
@@ -406,7 +409,6 @@ new Vue({
     normalize(val) { return String(val || '').trim().toLowerCase(); },
     firstWord(name) { return this.normalize(name).split(/\s+/)[0] || ''; },
 
-    /* ✅ Deterministic color for a member */
     memberColor(name){
       const idx = Math.abs(this.hashCode(name || 'Unknown')) % COLOR_PALETTE.length;
       return COLOR_PALETTE[idx];
@@ -416,10 +418,40 @@ new Vue({
       return h;
     },
 
+    /* ✅ Central resolver used everywhere to get Department for a KPI row */
+    resolveDepartment(item){
+      // 1) Use explicit username-like fields from KPI
+      const rawUser =
+        item.username || item.user || item.user_name ||
+        item.created_by_username || item.created_by ||
+        item.performed_by_username || item.email || '';
+
+      let uname = '';
+      if (rawUser) {
+        const s = String(rawUser);
+        uname = s.includes('@') ? s.split('@')[0] : s; // strip domain if email
+        uname = this.normalize(uname);
+      }
+
+      if (uname && this.usernameDeptIndex[uname]) {
+        return this.usernameDeptIndex[uname];           // ✅ primary: username → dept
+      }
+
+      // 2) Fallback: already-attached department (from enrichment)
+      if (item.department) return item.department;
+
+      // 3) Fallback: first-name guess from performed_by
+      const candidate = this.firstWord(item.performed_by) || this.firstWord(item.created_by);
+      if (candidate && this.firstNameDeptIndex[candidate]) {
+        return this.firstNameDeptIndex[candidate];
+      }
+
+      return 'Unassigned';
+    },
+
     attachDepartmentsToKPI(kpiArray) {
       return kpiArray.map(item => {
-        const candidate = this.firstWord(item.performed_by) || this.firstWord(item.created_by);
-        const dept = this.firstNameDeptIndex[candidate] || 'Unassigned';
+        const dept = this.resolveDepartment(item);
         return { ...item, department: dept };
       });
     },
@@ -483,23 +515,48 @@ new Vue({
       return target ? ((count / target) * 100).toFixed(1) + '%' : '0%';
     },
 
+    /* ---------- Data fetching ---------- */
+
+    // ✅ Users from lmthrp.com; build username → department map
     async fetchUsers() {
       try {
-        const res = await axios.get('http://31.97.43.196/kpidashboardapi/customer/users', API_HEADERS);
+        const res = await axios.get('https://lmthrp.com/api/customers/users', API_HEADERS);
         const users = res?.data?.response || res?.data || [];
         this.usersDirectory = users;
 
-        const index = {};
+        const firstIdx = {};
+        const unameIdx  = {};
+        const nameUname = {};
+
         users.forEach(u => {
           const first = this.normalize(u.first_name || u.firstname || u.given_name);
           const dept  = u.department || u.team || u.role || 'Unassigned';
-          if (first) index[first] = dept;
+
+          let uname = u.username || u.user_name || u.email || '';
+          if (uname) {
+            uname = String(uname);
+            uname = uname.includes('@') ? uname.split('@')[0] : uname;
+            uname = this.normalize(uname);
+          }
+
+          if (first) firstIdx[first] = dept;
+          if (uname) unameIdx[uname] = dept;
+
+          // Optional: map display name to username if present
+          const display = this.normalize((u.name || `${u.first_name||''} ${u.last_name||''}`).trim());
+          if (display && uname) nameUname[display] = uname;
         });
-        this.firstNameDeptIndex = index;
+
+        this.firstNameDeptIndex = firstIdx;
+        this.usernameDeptIndex  = unameIdx;
+        this.nameToUsernameIndex = nameUname;
+
       } catch (e) {
         console.error('Users fetch failed:', e);
         this.usersDirectory = [];
         this.firstNameDeptIndex = {};
+        this.usernameDeptIndex = {};
+        this.nameToUsernameIndex = {};
       }
     },
 
@@ -525,6 +582,7 @@ new Vue({
         await this.fetchUsers();
         const rawKPI = await this.fetchKPI();
 
+        // ✅ Attach departments using username map primarily
         const enriched = this.attachDepartmentsToKPI(rawKPI);
         this.profileData = enriched;
 
@@ -544,6 +602,7 @@ new Vue({
             platforms = new Set(), dates = new Set(), departments = new Set();
 
       this.profileData.forEach(item => {
+        const dept = this.resolveDepartment(item);
         if (item.report) reports.add(item.report);
         if (item.date) {
           months.add(new Date(item.date).toLocaleString('default', { month: 'long' }));
@@ -551,7 +610,7 @@ new Vue({
         }
         if (item.brand) brands.add(item.brand);
         if (item.platform) platforms.add(item.platform);
-        if (item.department) departments.add(item.department);
+        if (dept) departments.add(dept);
       });
 
       this.uniqueOptions = {
@@ -576,9 +635,8 @@ new Vue({
       this.groupedData = grouped;
     },
 
-    /* ---- Donut (uses dynamic member colors) ---- */
+    /* ---- Donut (member colors match legend) ---- */
     donutData(){
-      // keep labels exactly as memberList order to match legend colors
       const labels = this.memberList;
       const counts = labels.map(name =>
         this.filteredData.filter(i => (i.performed_by || 'Unknown') === name).length
@@ -652,8 +710,9 @@ new Vue({
           const target = this.getTarget(person, report);
           const balance = target - count;
           const pct = target ? (count / target * 100).toFixed(1) + '%' : '0%';
+          // sample row to display department (resolved the same way)
           const sample = this.filteredData.find(r => r.performed_by === person && r.report === report);
-          const dept = sample?.department || '';
+          const dept = sample ? this.resolveDepartment(sample) : '';
           rows.push([person, report, count, target, balance, pct, dept]);
         });
       });
