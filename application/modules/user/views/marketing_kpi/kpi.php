@@ -437,7 +437,7 @@ new Vue({
     /* ---- Fetch customers (FIRST NAME → DEPT) ---- */
     async fetchUsers(){
       try{
-        const res = await axios.get('http://31.97.43.196/kpidashboardapi/customers/users', API_HEADERS);
+        const res = await axios.get('http://31.97.43.196/kpidashboardapi/customer/users', API_HEADERS);
         const users = res?.data?.response || [];
         this.usersDirectory = users;
 
