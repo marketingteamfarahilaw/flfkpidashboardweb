@@ -113,10 +113,10 @@
       <div class="panel-body" style="display:flex;flex-direction:column;justify-content:center">
         <div class="muted">Results As To Date (ALL)</div>
         <p class="kpi-bubble">{{ overallCompletion.achieved }}%</p>
-        <p class="note" style="max-width:34ch">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+        <p class="note" style="max-width:34ch">Lorem ipsum dolor sit amet…</p>
         <p class="subkpi">Target/Goal (ALL)</p>
         <p class="kpi-bubble" style="font-size:40px">{{ overallCompletion.remaining }}%</p>
-        <p class="note" style="max-width:34ch">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+        <p class="note" style="max-width:34ch">Lorem ipsum dolor sit amet…</p>
       </div>
     </div>
 
@@ -200,7 +200,7 @@
 
         <div class="divider"></div>
 
-        <!-- ✅ Daily KPI by Department (now resolved by username/email/name from customers/users) -->
+        <!-- Daily KPI by Department -->
         <h5 class="panel-title" style="margin-bottom:10px">Daily KPI by Department</h5>
         <div class="table-responsive">
           <table class="table table-bordered">
@@ -229,7 +229,7 @@
 /* ---- Basic Auth ---- */
 const API_HEADERS = { headers: { Authorization: 'Basic ' + btoa('FLF:FLF@P!') } };
 
-/* Color palette for members */
+/* Colors */
 const COLOR_PALETTE = ['#071e37','#144468','#1b5f8a','#217ba9','#695c4a','#a38776','#c2aa91','#b58f44','#d8ac54','#e3cf91','#4f46e5','#10b981','#ef4444','#f59e0b','#0ea5e9','#8b5cf6','#14b8a6','#f43f5e','#22c55e','#64748b'];
 
 new Vue({
@@ -241,11 +241,11 @@ new Vue({
     profileData: [],
     usersDirectory: [],
 
-    // ✅ indices for department resolution
-    usernameDeptIndex: {},    // customer_username (and email prefix) -> department
-    emailDeptIndex: {},       // full email -> department
-    nameDeptIndex: {},        // exact display name -> department
-    firstNameDeptIndex: {},   // first name -> department (fallback)
+    // indices
+    firstNameDeptIndex: {},   // ✅ primary: first-name (from customers.name) -> department
+    usernameDeptIndex: {},    // optional fallback
+    emailDeptIndex: {},       // optional fallback
+    nameDeptIndex: {},        // optional fallback
 
     groupedData: {},
 
@@ -253,13 +253,9 @@ new Vue({
     uniqueOptions: { reports:[], months:[], brands:[], platforms:[], dates:[], departments:[] },
 
     targetData: {
-      'Blog Optimized': 25,
-      'Blog Published': 50,
-      'News Published': 20,
-      'Web App Developed': 20,
-      'Web App Optimized': 20,
-      'Landing Page Developed': 10,
-      'Landing Page Optimized': 25
+      'Blog Optimized': 25, 'Blog Published': 50, 'News Published': 20,
+      'Web App Developed': 20, 'Web App Optimized': 20,
+      'Landing Page Developed': 10, 'Landing Page Optimized': 25
     },
 
     donutChartInstance: null,
@@ -272,16 +268,17 @@ new Vue({
       return this.profileData
         .filter(item => {
           const monthName = item.date ? new Date(item.date).toLocaleString('default', { month: 'long' }) : '';
+          const dept = this.resolveDepartment(item);
           const matchesSearch = !search || (
             (item.performed_by && item.performed_by.toLowerCase().includes(search)) ||
             (item.report && item.report.toLowerCase().includes(search)) ||
             (item.brand && item.brand.toLowerCase().includes(search)) ||
             (item.platform && item.platform.toLowerCase().includes(search)) ||
             (item.notes && item.notes.toLowerCase().includes(search)) ||
-            (this.resolveDepartment(item) && this.resolveDepartment(item).toLowerCase().includes(search))
+            (dept && dept.toLowerCase().includes(search))
           );
           const sameDate = !this.filters.date || (String(item.date).slice(0,10) === String(this.filters.date).slice(0,10));
-          const matchesDept = !this.filters.department || (this.resolveDepartment(item) === this.filters.department);
+          const matchesDept = !this.filters.department || (dept === this.filters.department);
 
           return (
             item.report !== 'TLC' &&
@@ -301,7 +298,6 @@ new Vue({
       return Array.from(set).sort((a,b)=>a.localeCompare(b));
     },
 
-    // ✅ Department grouping uses resolveDepartment
     dailyKPIByDepartment() {
       const out = {};
       this.filteredData.forEach(item => {
@@ -357,12 +353,16 @@ new Vue({
     memberColor(name){ const i=Math.abs(this.hashCode(name||'Unknown'))%COLOR_PALETTE.length; return COLOR_PALETTE[i]; },
     hashCode(str){ let h=0; for(let i=0;i<str.length;i++){ h=((h<<5)-h)+str.charCodeAt(i); h|=0 } return h; },
 
-    /* === CORE: Resolve department for any KPI row === */
+    /* === CORE: Resolve department ===
+       Priority 1: first-name match from customers.name → customer_department
+       Then: username/email/name fallbacks if needed. */
     resolveDepartment(item){
-      // 1) Try username / user fields
-      const candidateKeys = [
-        'username','user','user_name','created_by_username','performed_by_username'
-      ];
+      // 1) strict FIRST NAME alignment (your requirement)
+      const first = this.firstWord(item.performed_by || item.created_by);
+      if (first && this.firstNameDeptIndex[first]) return this.firstNameDeptIndex[first];
+
+      // 2) optional: try username-style keys
+      const candidateKeys = ['username','user','user_name','created_by_username','performed_by_username'];
       for (const k of candidateKeys){
         const raw = item[k];
         if (raw){
@@ -371,7 +371,7 @@ new Vue({
         }
       }
 
-      // 2) Try email fields (full email, or prefix)
+      // 3) optional: try email
       const emailKeys = ['email','user_email','created_by','performed_by','created_by_email','performed_by_email'];
       for (const k of emailKeys){
         const raw = item[k];
@@ -383,13 +383,9 @@ new Vue({
         }
       }
 
-      // 3) Try display name exact
+      // 4) optional: display name exact
       const display = this.normalize(item.performed_by || item.created_by || item.name);
       if (display && this.nameDeptIndex[display]) return this.nameDeptIndex[display];
-
-      // 4) Fallback: first name
-      const first = this.firstWord(item.performed_by || item.created_by);
-      if (first && this.firstNameDeptIndex[first]) return this.firstNameDeptIndex[first];
 
       return 'Unassigned';
     },
@@ -438,53 +434,52 @@ new Vue({
     getBalance(person, report){ const t=this.getTarget(person,report); const c=this.groupedData[person][report]; return t-c; },
     getPercentage(person, report){ const t=this.getTarget(person,report); const c=this.groupedData[person][report]; return t?((c/t)*100).toFixed(1)+'%':'0%'; },
 
-    /* ---- Fetch users from your CUSTOMERS endpoint (the JSON you showed) ---- */
+    /* ---- Fetch customers (FIRST NAME → DEPT) ---- */
     async fetchUsers(){
       try{
-        const res = await axios.get('http://31.97.43.196/kpidashboardapi/customer/users', API_HEADERS);
+        const res = await axios.get('http://31.97.43.196/kpidashboardapi/customers/users', API_HEADERS);
         const users = res?.data?.response || [];
         this.usersDirectory = users;
 
+        const firstIdx = {};
         const usernameIdx = {};
-        const emailIdx    = {};
-        const nameIdx     = {};
-        const firstIdx    = {};
+        const emailIdx = {};
+        const nameIdx = {};
 
         users.forEach(u=>{
           const dept = u.customer_department || 'Unassigned';
 
-          // username map (customer_username); also map email prefix
+          // PRIMARY mapping: first word of "name" -> department
+          const first = this.firstWord(u.name);
+          if (first) firstIdx[first] = dept;
+
+          // helpful fallbacks (won’t override primary in resolver)
           let uname = u.customer_username ? String(u.customer_username) : '';
           if (uname){
-            const norm = this.normalize(uname.includes('@') ? uname.split('@')[0] : uname);
-            if (norm) usernameIdx[norm] = dept;
+            uname = uname.includes('@') ? uname.split('@')[0] : uname;
+            usernameIdx[this.normalize(uname)] = dept;
           }
-
-          // email map (full) and prefix
           if (u.customer_email){
-            const emailFull = this.normalize(u.customer_email);
-            const emailPrefix = this.normalize(u.customer_email.split('@')[0]);
-            if (emailFull)   emailIdx[emailFull] = dept;
-            if (emailPrefix) usernameIdx[emailPrefix] = dept; // treat as username too
+            emailIdx[this.normalize(u.customer_email)] = dept;
+            const pref = this.normalize(u.customer_email.split('@')[0]);
+            usernameIdx[pref] = dept; // allow email prefix as username
           }
-
-          // display name
           if (u.name){
-            const disp = this.normalize(u.name);
-            if (disp) nameIdx[disp] = dept;
-            const first = this.normalize(u.name).split(/\s+/)[0];
-            if (first) firstIdx[first] = dept;
+            nameIdx[this.normalize(u.name)] = dept;
           }
         });
 
-        this.usernameDeptIndex = usernameIdx;
-        this.emailDeptIndex    = emailIdx;
-        this.nameDeptIndex     = nameIdx;
-        this.firstNameDeptIndex= firstIdx;
+        this.firstNameDeptIndex = firstIdx;     // ✅ used first
+        this.usernameDeptIndex  = usernameIdx;  // fallback
+        this.emailDeptIndex     = emailIdx;     // fallback
+        this.nameDeptIndex      = nameIdx;      // fallback
 
       }catch(err){
         console.error('Users fetch failed:', err);
-        this.usernameDeptIndex={}; this.emailDeptIndex={}; this.nameDeptIndex={}; this.firstNameDeptIndex={};
+        this.firstNameDeptIndex = {};
+        this.usernameDeptIndex  = {};
+        this.emailDeptIndex     = {};
+        this.nameDeptIndex      = {};
       }
     },
 
@@ -496,8 +491,7 @@ new Vue({
           'http://31.97.43.196/kpidashboardapi/kpi/content'
         ];
         const responses = await Promise.all(urls.map(url=>axios.get(url, API_HEADERS)));
-        const merged = responses.flatMap(r=>r?.data?.response||[]);
-        return merged;
+        return responses.flatMap(r=>r?.data?.response||[]);
       }catch(e){
         console.error('Error fetching KPI data:', e);
         return [];
@@ -506,10 +500,10 @@ new Vue({
 
     async setKPI(){
       try{
-        await this.fetchUsers();                 // build maps first
+        await this.fetchUsers();                 // build FIRST NAME -> DEPT map first
         const raw = await this.fetchKPI();
 
-        // enrich rows with department via resolver
+        // tag every row with department via resolver (first-name priority)
         this.profileData = this.attachDepartmentsToKPI(raw);
 
         this.setFilterOptions();
