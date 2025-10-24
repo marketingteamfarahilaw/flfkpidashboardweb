@@ -115,13 +115,13 @@
             <div class="col-md">
                 <div class="dashboard-card">
                   <h5>% to Goal (Sign-ups)</h5>
-                  <h4>{{ (((parseInt(mtdsigncount) + parseInt(referredcount)) / parseInt(targetsignup)) * 100).toFixed(2) + '%' }}</h4>
+                  <h4>{{ ((parseInt(mtdsigncount) / parseInt(targetsignup)) * 100).toFixed(2) + '%' }}</h4>
                 </div>
             </div>
             <div class="col-md">
                 <div class="dashboard-card">
                   <h5>% to Goal (AR)</h5>
-                  <h4>{{ ((((parseInt(mtdsigncount) + parseInt(referredcount)) / parseInt(mtdleadcount)) / (parseInt(targetsignup) / parseInt(targetlead))) * 100).toFixed(2) + '%' }}</h4>
+                  <h4>{{ (((parseInt(mtdsigncount) / parseInt(mtdleadcount)) / (parseInt(targetsignup) / parseInt(targetlead))) * 100).toFixed(2) + '%' }}</h4>
                 </div>
             </div>
         </div>
@@ -1152,7 +1152,7 @@ $(document).ready(function () {
           }
           
           if (entry.value) {
-            groupedCategories[category]++;
+            groupedCategori98es[category]++;
           }
         });
         
