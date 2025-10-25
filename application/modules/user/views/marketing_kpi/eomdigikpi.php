@@ -1152,7 +1152,7 @@ $(document).ready(function () {
           }
           
           if (entry.value) {
-            groupedCategori98es[category]++;
+            groupedCategories[category]++;
           }
         });
         
