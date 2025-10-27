@@ -214,6 +214,29 @@
                     </table>
                 </div>
             </div>
+            <div class="col-md">
+                <h4 class="mb-3">Successful Referred Out Details</h4>
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Lead Source</th>
+                        <th scope="col">Case Value</th>
+                        <th scope="col">Case Type</th>
+                        <th scope="col">Client Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="item in successfulReferredList" :key="item.marketing_source + '-' + item.client_name">
+                        <td>{{ item.marketing_source }}</td>
+                        <td>{{ item.value }}</td>
+                        <td>{{ item.case_type }}</td>
+                        <td>{{ item.client_name }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+            </div>
         </div>
         <hr>
         <div class="row">
@@ -908,6 +931,8 @@ $(document).ready(function () {
         rawGmblocsummary: [],
         gmblocation: [],
         gmbTypesummary: [],
+
+        successfulReferredList: [],
     },
     computed: {
       displayRange() {
@@ -1168,6 +1193,14 @@ $(document).ready(function () {
         const referredEntries = filteredReferred.filter(e =>
           e.lead_outcome === 'Referred out'
         );
+
+        // Successful Referred Out details list
+        this.successfulReferredList = referredEntries.map(entry => ({
+          marketing_source: entry.marketing_source || 'Unknown',
+          value: entry.value || 'N/A',
+          case_type: entry.case_type || 'N/A',
+          client_name: entry.full_name || 'N/A'
+        }));
         
         // Group label helper
         const getGroupedLabel = (source) => {
