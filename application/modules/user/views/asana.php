@@ -155,7 +155,8 @@
           </tr>
         </thead>
         <tbody>
-          <template v-for="(group, performer) in groupedTasks" :key="performer">
+          chart
+          <!-- <template v-for="(group, performer) in groupedTasks" :key="performer">
             <tr>
               <td>{{ performer }}</td>
               <td>{{ group.length }}</td>
@@ -174,7 +175,7 @@
                 </td>
               </tr>
             </template>
-          </template>
+          </template> -->
         </tbody>
       </table>
     </div>
