@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/dashboard/portfolio.css') ?>">
 
-<!-- Vue + Chart.js -->
+<!-- Vue + Chart.js + SheetJS -->
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.8/dist/vue.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
@@ -14,7 +14,7 @@
     --card:#f6f7f9;          /* soft card bg */
     --line:#e8edf3;          /* separators */
     --accent:#0b2239;
-    /* donut palette: blues to taupes like the mock */
+    /* donut palette */
     --c1:#071e37; --c2:#144468; --c3:#1b5f8a; --c4:#217ba9;
     --c5:#695c4a; --c6:#a38776; --c7:#c2aa91; --c8:#b58f44;
     --c9:#d8ac54; --c10:#e3cf91;
@@ -44,11 +44,31 @@
 
   .section-title{ text-align:center; font-weight:900; text-transform:uppercase; margin:8px 0 18px; }
 
-  /* table styling like the mock */
+  /* ===== Matrix table (matches screenshot) ===== */
   .matrix-title{ text-align:center; margin:18px 0 10px; text-transform:uppercase; font-weight:900; }
-  table.table-sm thead th{ background:#f3f6fa; color:var(--ink); border-bottom:2px solid var(--line); }
-  table.table-sm td, table.table-sm th{ border-color:var(--line); }
-  .btn-link.p-0{ font-weight:700; }
+  .matrix-table thead th{
+    background:#f3f6fa; color:var(--ink); border-bottom:2px solid var(--line);
+    vertical-align:middle; text-transform:uppercase; font-size:12px;
+  }
+  .matrix-table td, .matrix-table th{ border-color:var(--line); font-size:13px; }
+  .week-header td{
+    background:#e9edf4; color:#233447; font-weight:800; text-transform:uppercase;
+  }
+  .t-center{ text-align:center; }
+  .t-right{ text-align:right; }
+  .task-link{ font-weight:600; color:#0b2239; text-decoration:none; }
+  .task-link:hover{ text-decoration:underline; }
+  .check{ color:#26a269; font-weight:900; margin-right:6px; }
+  .pill{
+    display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2f6;
+    font-size:12px; font-weight:700; color:#516173;
+  }
+  .status-badge{
+    display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:800;
+  }
+  .status--completed{ background:#e6f6eb; color:#1e7b36; }
+  .status--progress{ background:#eaf2fb; color:#195c97; }
+  .status--incomplete{ background:#fdeeee; color:#a83b3b; }
 
   /* layout helpers */
   .grid-3{
@@ -70,7 +90,7 @@
 
     <h2 class="content-title mb-3">ASANA Task Overview</h2>
 
-    <!-- Filters (kept but compact) -->
+    <!-- Filters -->
     <div class="card-muted mb-3">
       <div class="row align-items-end">
         <div class="col-md-2 col-6 mb-2">
@@ -111,7 +131,7 @@
           </ul>
         </div>
 
-        <!-- CENTER: Donut (text is drawn INSIDE via plugin) -->
+        <!-- CENTER: Donut -->
         <div class="chart-box">
           <canvas id="performedByChart"></canvas>
         </div>
@@ -143,39 +163,54 @@
       </div>
     </div>
 
-    <!-- ===== Section 3: DATA MATRIX TABLE ===== -->
-    <h5 class="matrix-title">Data Matrix Table</h5>
+    <!-- ===== Section 3: DATA MATRIX TABLE (WEEK-GROUPED) ===== -->
+    <h5 class="matrix-title">Design-Related Tasks</h5>
+
     <div class="table-responsive">
-      <table class="table table-hover table-bordered table-sm">
+      <table class="table table-hover table-bordered table-sm matrix-table">
         <thead class="thead-light">
           <tr>
-            <th @click="sortBy('performed_by')" style="cursor:pointer">Performed By</th>
-            <th @click="sortBy('count')" style="cursor:pointer">Task Count</th>
-            <th>Toggle View</th>
+            <th style="min-width:380px">Design-Related Tasks</th>
+            <th style="width:90px; text-align:center">OUTPUT<br>COUNT</th>
+            <th style="width:120px">BRAND</th>
+            <th style="width:140px">TASK TYPE</th>
+            <th style="width:150px">POC</th>
+            <th style="width:120px">STATUS</th>
+            <th style="width:120px">DUE DATE</th>
+            <th style="width:140px">DATE SUBMITTED</th>
+            <th style="width:120px">Time<br>(Minutes)</th>
           </tr>
         </thead>
+
         <tbody>
-          chart
-          <!-- <template v-for="(group, performer) in groupedTasks" :key="performer">
-            <tr>
-              <td>{{ performer }}</td>
-              <td>{{ group.length }}</td>
-              <td><button class="btn btn-link p-0" @click="toggleDetail(performer)">Toggle</button></td>
+          <template v-for="(rows, weekKey) in weekGroups" :key="weekKey">
+            <tr class="week-header">
+              <td colspan="9">
+                <strong>{{ weekKey }}</strong>
+              </td>
             </tr>
-            <template v-if="expanded[performer]">
-              <tr v-for="task in group" :key="task.id"
-                  @mouseover="hoverTask = task.id" @mouseleave="hoverTask = null">
-                <td colspan="3">
-                  <div>
-                    <strong>{{ task.title }}</strong>
-                    <span v-if="hoverTask === task.id" class="text-muted float-right">{{ task.parent_name }}</span>
-                  </div>
-                  <small>Due: {{ task.due_on || '—' }} | Completed: {{ task.completed_at || '—' }}</small><br>
-                  <a :href="task.permalink_url" target="_blank" rel="noopener">View Task</a>
-                </td>
-              </tr>
-            </template>
-          </template> -->
+
+            <tr v-for="r in rows" :key="r.id">
+              <td>
+                <a :href="r.permalink_url" target="_blank" rel="noopener" class="task-link">
+                  <span v-if="r.completed_at" class="check">✓</span>
+                  {{ r.title || '—' }}
+                </a>
+              </td>
+              <td class="t-center">{{ r.output_count ?? 0 }}</td>
+              <td>{{ r.brand || '—' }}</td>
+              <td><span class="pill">{{ r.task_type || '—' }}</span></td>
+              <td>{{ r.performed_by || '—' }}</td>
+              <td>
+                <span :class="['status-badge', statusClass(r.status, r.completed_at, r.due_on)]">
+                  {{ prettyStatus(r.status, r.completed_at, r.due_on) }}
+                </span>
+              </td>
+              <td>{{ fmtDate(r.due_on) }}</td>
+              <td>{{ fmtDate(r.completed_at || r.date_submitted) }}</td>
+              <td class="t-right">{{ r.time_minutes ?? '' }}</td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
@@ -194,12 +229,10 @@ $(document).ready(function () {
       expanded: {},
       hoverTask: null, sortKey:'', sortAsc:true,
 
-      // styling + target
       donutColors: ['#071e37','#144468','#1b5f8a','#217ba9','#695c4a','#a38776','#c2aa91','#b58f44','#d8ac54','#e3cf91'],
       donutLabels: [],
       targetGoal: 20,
 
-      // chart instances
       donut: null,
       bar: null
     },
@@ -215,7 +248,7 @@ $(document).ready(function () {
           return t>=ss && t<=ee;
         };
         return this.tasks.filter(t=>{
-          const dateToCheck = t.completed_at || t.due_on || null;
+          const dateToCheck = t.completed_at || t.date_submitted || t.due_on || null;
           const perfOk = !p || (t.performed_by||'Unassigned')===p;
           return inRange(dateToCheck) && perfOk;
         });
@@ -241,6 +274,56 @@ $(document).ready(function () {
         if(!f.length) return 0;
         const done=f.filter(t=>t.completed_at && String(t.completed_at).trim()!=='').length;
         return Math.round((done/f.length)*100);
+      },
+
+      /* ===== Week-grouped rows for the matrix table ===== */
+      weekGroups(){
+        const bucket = {};
+        this.filteredTasks.forEach(t=>{
+          const basisStr = t.completed_at || t.date_submitted || t.due_on;
+          const basis = basisStr ? new Date(basisStr.length<=10 ? basisStr+'T00:00:00' : basisStr) : new Date();
+          const key = this.weekLabelFromDate(basis);
+
+          const row = {
+            id: t.id || t.gid || `${(t.permalink_url||'')}-${(t.title||'')}`,
+            title: t.title,
+            output_count: t.output_count ?? t.count ?? 0,
+            brand: t.brand || t.project || t.workspace || t.project_abbr,
+            task_type: t.task_type || t.category || t.section,
+            performed_by: t.performed_by || t.poc,
+            status: t.status,
+            due_on: t.due_on,
+            completed_at: t.completed_at,
+            date_submitted: t.date_submitted,
+            time_minutes: t.time_minutes ?? t.time_spent_minutes,
+            permalink_url: t.permalink_url
+          };
+
+          (bucket[key] = bucket[key] || []).push(row);
+        });
+
+        Object.keys(bucket).forEach(k=>{
+          bucket[k].sort((a,b)=>{
+            const ad = new Date(a.completed_at || a.date_submitted || a.due_on || 0).getTime();
+            const bd = new Date(b.completed_at || b.date_submitted || b.due_on || 0).getTime();
+            return bd - ad;
+          });
+        });
+
+        const ordered = {};
+        Object.keys(bucket)
+          .sort((A,B)=>{
+            const endDateOf = (lab)=>{
+              const m = lab.match(/\(([A-Za-z]{3}) (\d{1,2}) - (\d{1,2})\)/);
+              if(!m) return 0;
+              const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(m[1]);
+              const yr = new Date().getFullYear();
+              return new Date(yr, mon, parseInt(m[3],10)).getTime();
+            };
+            return endDateOf(B) - endDateOf(A);
+          })
+          .forEach(k=> ordered[k]=bucket[k]);
+        return ordered;
       }
     },
     watch:{ filteredTasks(){ this.renderAll(); } },
@@ -251,18 +334,55 @@ $(document).ready(function () {
       sortBy(key){ if(this.sortKey===key) this.sortAsc=!this.sortAsc; else { this.sortKey=key; this.sortAsc=true; } },
       toggleDetail(p){ this.$set(this.expanded,p,!this.expanded[p]); },
 
+      fmtDate(v){
+        if(!v) return '—';
+        const d = (''+v).length <= 10 ? new Date(v+'T00:00:00') : new Date(v);
+        if(isNaN(d.getTime())) return '—';
+        const mm=('0'+(d.getMonth()+1)).slice(-2), dd=('0'+d.getDate()).slice(-2);
+        return `${mm}/${dd}/${d.getFullYear()}`;
+      },
+      statusClass(status, completed_at, due_on){
+        const s = (status||'').toLowerCase();
+        if(completed_at) return 'status--completed';
+        if(s.includes('complete')) return 'status--completed';
+        const today = new Date(); const due = due_on ? new Date(due_on) : null;
+        if(due && due < new Date(today.getFullYear(), today.getMonth(), today.getDate())) return 'status--incomplete';
+        return 'status--progress';
+      },
+      prettyStatus(status, completed_at, due_on){
+        if(completed_at || (status||'').toLowerCase().includes('complete')) return 'Completed';
+        const today = new Date(); const due = due_on ? new Date(due_on) : null;
+        if(due && due < new Date(today.getFullYear(), today.getMonth(), today.getDate())) return 'Incomplete';
+        return 'Progress';
+      },
+      weekLabelFromDate(d){
+        // Monday-based week, shows "WEEK X (Mon DD - Fri DD)"
+        const dt = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const day = (dt.getDay()+6)%7; // 0=Mon..6=Sun
+        const monday = new Date(dt); monday.setDate(dt.getDate()-day);
+        const friday = new Date(monday); friday.setDate(monday.getDate()+4);
+
+        const monthShort = (x)=>['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][x];
+        const label = `${monthShort(monday.getMonth())} ${monday.getDate()} - ${friday.getDate()}`;
+
+        const first = new Date(dt.getFullYear(), dt.getMonth(), 1);
+        const firstDay = (first.getDay()+6)%7;
+        const offset = first.getDate() - firstDay;
+        const weekNumber = Math.floor((dt.getDate()-offset-1)/7)+1;
+
+        return `WEEK ${weekNumber} (${label})`;
+      },
+
       async fetchData(){
         const res = await fetch("http://31.97.43.196/kpidashboardapi/kpi/getGraphicsTeam", CONFIG.HEADER);
         const json = await res.json();
         if(json.status){
           this.tasks = json.response;
 
-          // performer list
           const performers = Array.from(new Set(this.tasks.map(t=>t.performed_by||'Unassigned'))).sort();
           this.filterOptions.performedBy = performers;
           this.donutLabels = performers;
 
-          // default MTD
           if(!this.filters.startDate && !this.filters.endDate){ this.setMTD(); }
           this.$nextTick(this.renderAll);
         }
@@ -285,7 +405,6 @@ $(document).ready(function () {
 
       /* ================== CHARTS ================== */
       buildDonut(){
-        // plugin that draws center text INSIDE the donut
         const centerTextPlugin = {
           id: 'centerTextPlugin',
           afterDraw: (chart) => {
@@ -310,7 +429,6 @@ $(document).ready(function () {
           }
         };
 
-        // counts per performer
         const counts = this.filteredTasks.reduce((acc,t)=>{
           const k=t.performed_by||'Unassigned';
           acc[k]=(acc[k]||0)+1; return acc;
@@ -323,18 +441,12 @@ $(document).ready(function () {
         this.donut = new Chart(ctx,{
           type:'doughnut',
           data:{ labels, datasets:[{ data, backgroundColor:this.donutColors, borderWidth:0 }] },
-          options:{
-            cutout:'62%',                 // adjust hole size if needed
-            plugins:{ legend:{ display:false } },
-            maintainAspectRatio:true,
-            responsive:true
-          },
+          options:{ cutout:'62%', plugins:{ legend:{ display:false } }, maintainAspectRatio:true, responsive:true },
           plugins:[centerTextPlugin]
         });
       },
 
       buildBar(){
-        // Group by month (YYYY-MM) across ALL performers
         const buckets = {};
         const today = new Date();
 
