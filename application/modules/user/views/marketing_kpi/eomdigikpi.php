@@ -104,7 +104,7 @@
             <div class="col-md">
                 <div class="dashboard-card" :class="mtdAcquisitionRateColorClass">
                   <h5>MTD Acquisition Rate</h5>
-                  <h4>{{ (((parseInt(mtdsigncount) + parseInt(referredcount)) / parseInt(mtdleadcount)) * 100).toFixed(2) + '%' }}</h4>
+                  <h4>{{ (((parseInt(mtdsigncount)) / parseInt(mtdleadcount)) * 100).toFixed(2) + '%' }}</h4>
                 </div>
             </div>
         </div>
@@ -1060,6 +1060,28 @@ $(document).ready(function () {
         const uniqueSignups = uniqueSet.size;
         const conversion = totalLeads ? ((totalSigned / totalLeads) * 100).toFixed(2) + '%' : '0%';
         return { name: label, totalLeads, signedReferredOut, uniqueSignups, signedInHouse, totalSigned, target, conversion };
+      },
+
+      signedColorClass() {
+        // const signed = parseInt(this.mtdsigncoun+this.referredcount);
+        const signed = parseInt(this.mtdsigncount) + parseInt(this.referredcount);
+        const target = parseInt(this.targetsignup);
+        
+        this.totalsignedcount = signed;
+
+        if (isNaN(signed) || isNaN(target) || target === 0) {
+          return '';
+        }
+
+        const percentage = (signed / target) * 100;
+
+        if (percentage < 50) {
+          return 'red';
+        } else if (percentage >= 50 && percentage < 100) {
+          return 'orange';
+        } else {
+          return 'green';
+        }
       },
 
       filterByDateRange() {
