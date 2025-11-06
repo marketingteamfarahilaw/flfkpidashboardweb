@@ -30,7 +30,7 @@
   .kpi-table thead th { background:#6e561b; color:#fff; font-weight:700; }
   .kpi-table .subhead { background:#f0f1f3; color:#333; font-weight:700; text-align:left; }
   .kpi-table .total-row { background:#0c2a52; color:#fff; font-weight:800; }
-  .kpi-table .target-col { background:#e7e8ea; font-weight:700; }
+  .kpi-table .target-col { background:#e7e8ea; font-weight:700;color:#333; }
   .kpi-table .signed-inhouse { background:#fff679; font-weight:800; color:#0033cc; }
   .kpi-table .signup-unique { background:#7aff6a; font-weight:800; color:#0b2239; }
   .kpi-table .signed-referred { background:#7de8ff; font-weight:800; color:#0b2239; }
