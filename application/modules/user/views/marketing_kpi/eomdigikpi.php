@@ -200,6 +200,56 @@
                 </div>
             </div>
         </div>
+        
+        <hr>
+        <div class="row">
+            <div class="col-md">
+                <h4 class="mb-3">In-House Signup Details</h4>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                              <th scope="col">Lead Source</th>
+                              <th scope="col">Case Value</th>
+                              <th scope="col">Case Type</th>
+                              <th scope="col">Client Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in inhousesignupsummarylist">
+                                <td>{{item.marketing_source}}</td>
+                                <td>{{ item.value }}</td>
+                                <td>{{ item.case_type }}</td>
+                                <td>{{ item.client_name }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md">
+                <h4 class="mb-3">Successful Referred Out Details</h4>
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Lead Source</th>
+                        <th scope="col">Case Value</th>
+                        <th scope="col">Case Type</th>
+                        <th scope="col">Client Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="item in successfulReferredList" :key="item.marketing_source + '-' + item.client_name">
+                        <td>{{ item.marketing_source }}</td>
+                        <td>{{ item.value }}</td>
+                        <td>{{ item.case_type }}</td>
+                        <td>{{ item.client_name }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+        </div>
 
         <!-- ===== the remainder of your original dashboard stays the same ===== -->
         <!-- (SEO PERFORMANCE MONITORING, GBP, RND, GA, Emails, etc.) -->
