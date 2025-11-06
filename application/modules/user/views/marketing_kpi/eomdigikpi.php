@@ -59,12 +59,82 @@
       <h2 class="mb-3 text-center">MTD PERFORMANCE SUMMARY</h2>
       <h4 class="text-center mb-4">{{ displayRange }}</h4>
     </div>
-
+    <div class="row mt-3">
+            <div class="col-md">
+                <div class="dashboard-card">
+                  <h5>Target Leads</h5>
+                  <h4>{{targetlead}}</h4>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="dashboard-card">
+                  <h5>Target Sign-ups</h5>
+                  <h4>{{targetsignup}}</h4>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="dashboard-card">
+                  <h5>Target Acquisition Rate</h5>
+                  <h4>{{ ((parseInt(targetsignup) / parseInt(targetlead)) * 100) + '%' }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md">
+                <div class="dashboard-card" :class="colorClass">
+                  <h5>MTD Leads</h5>
+                  <h4>{{mtdleadcount}}</h4>
+                </div>
+            </div>
+            <div class="col-md"  :class="signedColorClass" style="background: #b4d4f5;border-radius: 8px;padding: 16px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+                <div class="row" style="border-bottom: 1px solid #000; margin-bottom: 2px; padding-top: 2px;">
+                    <div class="col-md text-center">
+                        <h6>MTD Client Sign-ups</h6>
+                        <h5>{{mtdsigncount}}</h5>
+                    </div>
+                    <div class="col-md text-center">
+                        <h6>Successful Referrals</h6>
+                        <h5>{{referredcount}}</h5>
+                    </div>
+                </div>  
+                </hr>
+                <h4 class="text-center">{{totalsignedcount}}</h4>
+            </div>
+            <!--totalsignedcount-->
+            <div class="col-md">
+                <div class="dashboard-card" :class="mtdAcquisitionRateColorClass">
+                  <h5>MTD Acquisition Rate</h5>
+                  <h4>{{ (((parseInt(mtdsigncount) + parseInt(referredcount)) / parseInt(mtdleadcount)) * 100).toFixed(2) + '%' }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md">
+                <div class="dashboard-card">
+                  <h5>% to Goal (Leads)</h5>
+                  <h4>{{ (( parseInt(mtdleadcount)/parseInt(targetlead) ) * 100).toFixed(2) }}%</h4>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="dashboard-card">
+                  <h5>% to Goal (Sign-ups)</h5>
+                  <h4>{{ ((parseInt(mtdsigncount) / parseInt(targetsignup)) * 100).toFixed(2) + '%' }}</h4>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="dashboard-card">
+                  <h5>% to Goal (AR)</h5>
+                  <h4>{{ (((parseInt(mtdsigncount) / parseInt(mtdleadcount)) / (parseInt(targetsignup) / parseInt(targetlead))) * 100).toFixed(2) + '%' }}</h4>
+                </div>
+            </div>
+        </div>
+    
+        
+        <hr>
     <!-- ===================== NEW PRESENTATION (replacing old KPI cards) ===================== -->
     <div class="row">
       <div class="col-12">
         <div class="table-responsive">
-          <p class="kpi-caption">DIGITAL MARKETING TEAM</p>
           <table class="kpi-table">
             <thead>
               <tr>
