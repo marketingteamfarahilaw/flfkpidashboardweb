@@ -104,7 +104,7 @@
             <div class="col-md">
                 <div class="dashboard-card" :class="mtdAcquisitionRateColorClass">
                   <h5>MTD Acquisition Rate</h5>
-                  <h4>{{ (((parseInt(mtdsigncount)) / parseInt(mtdleadcount)) * 100).toFixed(2) + '%' }}</h4>
+                  <h4>{{ firstTableTotals.conversion }}</h4>
                 </div>
             </div>
         </div>
