@@ -98,7 +98,7 @@
                     </div>
                 </div>  
                 </hr>
-                <h4 class="text-center">{{totalsignedcount}}</h4>
+                <h4 class="text-center">{{firstTableTotals.totalSigned}}</h4>
             </div>
             <!--totalsignedcount-->
             <div class="col-md">
@@ -1060,28 +1060,6 @@ $(document).ready(function () {
         const uniqueSignups = uniqueSet.size;
         const conversion = totalLeads ? ((totalSigned / totalLeads) * 100).toFixed(2) + '%' : '0%';
         return { name: label, totalLeads, signedReferredOut, uniqueSignups, signedInHouse, totalSigned, target, conversion };
-      },
-
-      signedColorClass() {
-        // const signed = parseInt(this.mtdsigncoun+this.referredcount);
-        const signed = parseInt(this.mtdsigncount) + parseInt(this.referredcount);
-        const target = parseInt(this.targetsignup);
-        
-        this.totalsignedcount = signed;
-
-        if (isNaN(signed) || isNaN(target) || target === 0) {
-          return '';
-        }
-
-        const percentage = (signed / target) * 100;
-
-        if (percentage < 50) {
-          return 'red';
-        } else if (percentage >= 50 && percentage < 100) {
-          return 'orange';
-        } else {
-          return 'green';
-        }
       },
 
       filterByDateRange() {
