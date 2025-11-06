@@ -7,7 +7,7 @@
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <style>
-  /* ====== LOOK & FEEL TO MATCH THE MOCKUP ====== */
+  /* ====== Base Look & Feel ====== */
   :root{
     --ink:#0b2239;           /* deep navy for headings */
     --muted:#607489;         /* muted gray-blue */
@@ -44,7 +44,7 @@
 
   .section-title{ text-align:center; font-weight:900; text-transform:uppercase; margin:8px 0 18px; }
 
-  /* ===== Matrix table (matches screenshot) ===== */
+  /* ===== Week-Grouped Matrix Table ===== */
   .matrix-title{ text-align:center; margin:18px 0 10px; text-transform:uppercase; font-weight:900; }
   .matrix-table thead th{
     background:#f3f6fa; color:var(--ink); border-bottom:2px solid var(--line);
@@ -70,7 +70,7 @@
   .status--progress{ background:#eaf2fb; color:#195c97; }
   .status--incomplete{ background:#fdeeee; color:#a83b3b; }
 
-  /* layout helpers */
+  /* ===== Layout helpers ===== */
   .grid-3{
     display:grid; grid-template-columns:260px 1fr 360px; gap:26px; align-items:center;
   }
@@ -83,6 +83,35 @@
     .kpi-wrap{ max-width:100%; }
     #overallBar{ width:100%!important; }
   }
+
+  /* ===== Monthly Dashboard mini-tables ===== */
+  .month-row-title{
+    font-weight:900; text-transform:uppercase; margin:14px 0 8px; color:#1c2d3a;
+  }
+  .mini-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;
+  }
+  @media (max-width: 1200px){ .mini-grid{ grid-template-columns:1fr; } }
+
+  .mini-card{
+    border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff;
+  }
+  .mini-head{
+    padding:10px 12px; color:#fff; font-weight:800; display:flex; align-items:center; gap:8px;
+    text-transform:capitalize; justify-content:space-between;
+  }
+  .theme-blue .mini-head{ background:#2a4b7c; }
+  .theme-green .mini-head{ background:#2d5f3b; }
+  .theme-gray .mini-head{ background:#49515a; }
+
+  .mini-body{ padding:0; }
+  .mini-table{ width:100%; border-collapse:collapse; }
+  .mini-table th, .mini-table td{
+    border-top:1px solid var(--line); padding:8px 10px; font-size:13px;
+  }
+  .mini-table thead th{ background:#f3f6fa; text-transform:uppercase; font-size:12px; }
+  .mini-table tfoot td{ font-weight:900; background:#eef2f6; }
+  .mini-table .label{ font-weight:700; }
 </style>
 
 <section class="content" id="app">
@@ -116,7 +145,7 @@
       </div>
     </div>
 
-    <!-- ===== Section 1: TASKS PERFORMED BY (INDIVIDUAL) ===== -->
+    <!-- ===== Section 1: Tasks Performed By (Donut) ===== -->
     <div class="card-xl mb-4">
       <h5 class="section-title">Tasks Performed By (Individual)</h5>
       <div class="grid-3">
@@ -150,7 +179,7 @@
       </div>
     </div>
 
-    <!-- ===== Section 2: TOTAL COMPLETE VS INCOMPLETE TASKS (ALL) ===== -->
+    <!-- ===== Section 2: Total Complete vs Incomplete (Bar) ===== -->
     <div class="card-xl mb-4">
       <h5 class="section-title">Total Complete vs Incomplete Tasks (All)</h5>
       <div class="bar-box">
@@ -163,9 +192,85 @@
       </div>
     </div>
 
-    <!-- ===== Section 3: DATA MATRIX TABLE (WEEK-GROUPED) ===== -->
-    <h5 class="matrix-title">Design-Related Tasks</h5>
+    <!-- ===== Section 2.5: Monthly Dashboards (Mini-Tables) ===== -->
+    <div class="card-xl mb-4">
+      <h5 class="section-title">Monthly Dashboards</h5>
 
+      <!-- Previous Month -->
+      <div class="month-row-title">{{ prevMonthName }} Dashboard</div>
+      <div class="mini-grid">
+        <div v-for="(blk, i) in prevMonthDash" :key="'prev-'+i"
+             class="mini-card" :class="blk.theme">
+          <div class="mini-head">
+            <span>{{ blk.title }}</span>
+          </div>
+          <div class="mini-body">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th style="width:55%">Tasks</th>
+                  <th style="width:22%">Total</th>
+                  <th style="width:23%">Yesterday</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in blk.rows" :key="row.name">
+                  <td class="label">{{ row.name }}</td>
+                  <td>{{ row.total }}</td>
+                  <td>{{ row.yesterday }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>{{ blk.totals.total }}</td>
+                  <td>{{ blk.totals.yesterday }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Month -->
+      <div class="month-row-title mt-3">{{ currMonthName }} Dashboard</div>
+      <div class="mini-grid">
+        <div v-for="(blk, i) in currMonthDash" :key="'curr-'+i"
+             class="mini-card" :class="blk.theme">
+          <div class="mini-head">
+            <span>{{ blk.title }}</span>
+          </div>
+          <div class="mini-body">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th style="width:55%">Tasks</th>
+                  <th style="width:22%">Total</th>
+                  <th style="width:23%">Yesterday</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in blk.rows" :key="row.name">
+                  <td class="label">{{ row.name }}</td>
+                  <td>{{ row.total }}</td>
+                  <td>{{ row.yesterday }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>{{ blk.totals.total }}</td>
+                  <td>{{ blk.totals.yesterday }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Section 3: Week-Grouped Matrix Table ===== -->
+    <h5 class="matrix-title">Design-Related Tasks</h5>
     <div class="table-responsive">
       <table class="table table-hover table-bordered table-sm matrix-table">
         <thead class="thead-light">
@@ -181,15 +286,11 @@
             <th style="width:120px">Time<br>(Minutes)</th>
           </tr>
         </thead>
-
         <tbody>
           <template v-for="(rows, weekKey) in weekGroups" :key="weekKey">
             <tr class="week-header">
-              <td colspan="9">
-                <strong>{{ weekKey }}</strong>
-              </td>
+              <td colspan="9"><strong>{{ weekKey }}</strong></td>
             </tr>
-
             <tr v-for="r in rows" :key="r.id">
               <td>
                 <a :href="r.permalink_url" target="_blank" rel="noopener" class="task-link">
@@ -232,6 +333,12 @@ $(document).ready(function () {
       donutColors: ['#071e37','#144468','#1b5f8a','#217ba9','#695c4a','#a38776','#c2aa91','#b58f44','#d8ac54','#e3cf91'],
       donutLabels: [],
       targetGoal: 20,
+
+      // categories for monthly mini-tables
+      categories: [
+        'GBP','Blog Graphics','Video Editing','SocMed Graphics',
+        'Marketing Services','Special Projects','UI/UX','Client Filming'
+      ],
 
       donut: null,
       bar: null
@@ -276,7 +383,7 @@ $(document).ready(function () {
         return Math.round((done/f.length)*100);
       },
 
-      /* ===== Week-grouped rows for the matrix table ===== */
+      /* ===== Week-grouped rows for matrix ===== */
       weekGroups(){
         const bucket = {};
         this.filteredTasks.forEach(t=>{
@@ -324,7 +431,19 @@ $(document).ready(function () {
           })
           .forEach(k=> ordered[k]=bucket[k]);
         return ordered;
-      }
+      },
+
+      /* ===== Monthly Dashboard computed ===== */
+      prevMonthName(){
+        const d=new Date(); d.setMonth(d.getMonth()-1);
+        return d.toLocaleString('en',{month:'short'});
+      },
+      currMonthName(){
+        const d=new Date();
+        return d.toLocaleString('en',{month:'short'});
+      },
+      prevMonthDash(){ return this.buildMonthDash(-1); },
+      currMonthDash(){ return this.buildMonthDash(0); }
     },
     watch:{ filteredTasks(){ this.renderAll(); } },
     methods:{
@@ -371,6 +490,75 @@ $(document).ready(function () {
         const weekNumber = Math.floor((dt.getDate()-offset-1)/7)+1;
 
         return `WEEK ${weekNumber} (${label})`;
+      },
+
+      // ===== Monthly Dashboard helpers =====
+      mapCategory(t){
+        const raw = (t.task_type || t.category || t.section || '').toLowerCase();
+        const checks = [
+          ['gbp','GBP'],
+          ['blog','Blog Graphics'],
+          ['video','Video Editing'],
+          ['soc','SocMed Graphics'],
+          ['marketing','Marketing Services'],
+          ['special','Special Projects'],
+          ['ui','UI/UX'],
+          ['ux','UI/UX'],
+          ['filming','Client Filming']
+        ];
+        for(const [needle,label] of checks){
+          if(raw.includes(needle)) return label;
+        }
+        return null; // ignore if we can't classify
+      },
+      buildMonthDash(monthOffset){
+        const start = new Date(); start.setDate(1); start.setHours(0,0,0,0);
+        start.setMonth(start.getMonth()+monthOffset);
+        const end = new Date(start.getFullYear(), start.getMonth()+1, 0, 23,59,59,999);
+
+        const inMonth = (d)=> d && (new Date(d).getTime()>=start.getTime()) && (new Date(d).getTime()<=end.getTime());
+        const y = new Date(); y.setDate(y.getDate()-1); y.setHours(0,0,0,0);
+        const yStart = y.getTime(), yEnd = yStart + 24*60*60*1000 - 1;
+
+        const monthTasks = this.tasks.filter(t=>{
+          const basis = t.completed_at || t.due_on || t.date_submitted;
+          return inMonth(basis);
+        });
+
+        // group by performer to pick top 2
+        const byPerf = monthTasks.reduce((acc,t)=>{
+          const k=t.performed_by||'Unassigned';
+          (acc[k]=acc[k]||[]).push(t);
+          return acc;
+        },{});
+        const topPerformers = Object.entries(byPerf)
+          .map(([k,arr])=>[k,arr.length]).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0]);
+
+        const blocks = [
+          { key:'__ALL__', title:'Total (All)', theme:'theme-blue' },
+          { key: topPerformers[0] || null, title: topPerformers[0] ? topPerformers[0] : '—', theme:'theme-green' },
+          { key: topPerformers[1] || null, title: topPerformers[1] ? topPerformers[1] : '—', theme:'theme-gray' }
+        ].filter(b=>b.key!==null);
+
+        return blocks.map(b=>{
+          const src = b.key==='__ALL__' ? monthTasks : (byPerf[b.key]||[]);
+          const rows = this.categories.map(cat=>{
+            const inCat = src.filter(t=> this.mapCategory(t)===cat);
+            const total = inCat.length;
+            const yesterday = inCat.filter(t=>{
+              const basis = t.completed_at || t.due_on || t.date_submitted;
+              if(!basis) return false;
+              const ts = new Date(basis).getTime();
+              return ts>=yStart && ts<=yEnd && ts>=start.getTime() && ts<=end.getTime();
+            }).length;
+            return { name: cat, total, yesterday };
+          });
+          const totals = {
+            total: rows.reduce((s,r)=>s+r.total,0),
+            yesterday: rows.reduce((s,r)=>s+r.yesterday,0)
+          };
+          return { ...b, rows, totals };
+        });
       },
 
       async fetchData(){
