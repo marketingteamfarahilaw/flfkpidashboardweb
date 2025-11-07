@@ -74,7 +74,7 @@
   .grid-3{
     display:grid; grid-template-columns:260px 1fr 360px; gap:26px; align-items:center;
   }
-  #overallBar{ width:800px!important; margin:0 auto!important; }
+  #overallBar{ width:60vw!important; height: 720px!important; margin:0 auto!important; }
   .chart-box{ position:relative; height:300px; }
   .bar-box{ height:auto; } /* allow dynamic height */
   #performedByChart { margin: 0 auto; }
