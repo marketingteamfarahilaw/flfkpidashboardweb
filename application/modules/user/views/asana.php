@@ -181,7 +181,7 @@
 
     <!-- ===== Section 2: Members vs Task Status (Bar) ===== -->
     <div class="card-xl mb-4">
-      <h5 class="section-title">Members vs Task Status (All)</h5>
+      <h5 class="section-title">Members Task Status</h5>
       <div class="bar-box">
         <canvas id="overallBar"></canvas>
       </div>
