@@ -76,7 +76,7 @@
   }
   #overallBar{ width:800px!important; margin:0 auto!important; }
   .chart-box{ position:relative; height:300px; }
-  .bar-box{ height:340px; }
+  .bar-box{ height:auto; } /* allow dynamic height */
   #performedByChart { margin: 0 auto; }
   @media(max-width: 992px){
     .grid-3{ grid-template-columns:1fr; }
@@ -179,9 +179,9 @@
       </div>
     </div>
 
-    <!-- ===== Section 2: Total Complete vs Incomplete (Bar) ===== -->
+    <!-- ===== Section 2: Members vs Task Status (Bar) ===== -->
     <div class="card-xl mb-4">
-      <h5 class="section-title">Total Complete vs Incomplete Tasks (All)</h5>
+      <h5 class="section-title">Members vs Task Status (All)</h5>
       <div class="bar-box">
         <canvas id="overallBar"></canvas>
       </div>
@@ -634,37 +634,50 @@ $(document).ready(function () {
         });
       },
 
+      // ===== UPDATED: Per-member stacked bar (Complete / Progress / Incomplete)
       buildBar(){
-        const buckets = {};
-        const today = new Date();
+        const buckets = {}; // { performer: {complete, progress, incomplete} }
+        const today = new Date(); today.setHours(0,0,0,0);
 
         this.filteredTasks.forEach(t=>{
-          const basis = t.completed_at || t.due_on;
-          if(!basis) return;
-          const key = basis.slice(0,7); // YYYY-MM
+          const perf = t.performed_by || 'Unassigned';
+          if(!buckets[perf]) buckets[perf] = { complete:0, progress:0, incomplete:0 };
 
-          if(!buckets[key]) buckets[key] = { complete:0, progress:0, incomplete:0 };
-
-          if(t.completed_at && String(t.completed_at).trim()!==''){
-            buckets[key].complete++;
+          const hasCompleted = t.completed_at && String(t.completed_at).trim() !== '';
+          if (hasCompleted) {
+            buckets[perf].complete++;
           } else {
-            const due = t.due_on ? new Date(t.due_on) : null;
-            if(due && due.getTime() >= today.getTime()) buckets[key].progress++;
-            else buckets[key].incomplete++;
+            const rawDue = t.due_on || null;
+            const due = rawDue ? new Date((String(rawDue).length<=10 ? rawDue+'T00:00:00' : rawDue)) : null;
+            if (due && due.getTime() >= today.getTime()) buckets[perf].progress++;
+            else buckets[perf].incomplete++;
           }
         });
 
-        const months = Object.keys(buckets).sort();
-        const complete = months.map(m=>buckets[m].complete);
-        const progress = months.map(m=>buckets[m].progress);
-        const incomplete = months.map(m=>buckets[m].incomplete);
+        // Sort members by total tasks desc, then name
+        const labels = Object.keys(buckets)
+          .sort((a,b)=>{
+            const ta = buckets[a].complete + buckets[a].progress + buckets[a].incomplete;
+            const tb = buckets[b].complete + buckets[b].progress + buckets[b].incomplete;
+            if (tb !== ta) return tb - ta;
+            return a.localeCompare(b);
+          });
 
-        const ctx = document.getElementById('overallBar').getContext('2d');
+        const complete   = labels.map(n=>buckets[n].complete);
+        const progress   = labels.map(n=>buckets[n].progress);
+        const incomplete = labels.map(n=>buckets[n].incomplete);
+
+        const canvas = document.getElementById('overallBar');
+        const ctx = canvas.getContext('2d');
+
+        // Dynamic height for many members
+        canvas.height = Math.max(360, labels.length * 32);
+
         if(this.bar) this.bar.destroy();
         this.bar = new Chart(ctx,{
           type:'bar',
           data:{
-            labels: months,
+            labels,
             datasets:[
               { label:'Complete',   data:complete,   backgroundColor:'#0b2239', borderWidth:0 },
               { label:'Progress',   data:progress,   backgroundColor:'#1b5f8a', borderWidth:0 },
@@ -673,11 +686,19 @@ $(document).ready(function () {
           },
           options:{
             responsive:true,
+            maintainAspectRatio:false,
             plugins:{ legend:{ display:false } },
             scales:{
               x:{ grid:{ display:false } },
-              y:{ beginAtZero:true, grid:{ color:'#e9eef4' }, title:{ display:true, text:'Task (count, in numbers)' } }
+              y:{
+                beginAtZero:true,
+                grid:{ color:'#e9eef4' },
+                title:{ display:true, text:'Task (count, in numbers)' },
+                ticks:{ autoSkip:false, maxRotation:0, minRotation:0 }
+              }
             }
+            // If you prefer horizontal bars, uncomment the next line:
+            // , indexAxis:'y'
           }
         });
       },
