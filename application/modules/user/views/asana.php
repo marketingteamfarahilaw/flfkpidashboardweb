@@ -395,7 +395,7 @@ $(document).ready(function () {
             id: t.id || t.gid || `${(t.permalink_url||'')}-${(t.title||'')}`,
             title: t.title,
             output_count: t.output_count ?? t.output_count ?? 0,
-            brand: t.brand || t.project || t.workspace || t.project_abbr,
+            brand: t.brand,
             task_type: t.task_type || t.category || t.section,
             performed_by: t.performed_by || t.poc,
             status: t.status,
