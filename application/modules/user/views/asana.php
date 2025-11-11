@@ -578,6 +578,7 @@ $(document).ready(function () {
       async fetchData(){
         const res = await fetch("http://31.97.43.196/kpidashboardapi/kpi/getGraphicsTeam", CONFIG.HEADER);
         const json = await res.json();
+        console.log(json);
         if(json.status){
           this.tasks = json.response;
 
