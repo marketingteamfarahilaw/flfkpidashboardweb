@@ -394,15 +394,15 @@ $(document).ready(function () {
           const row = {
             id: t.id || t.gid || `${(t.permalink_url||'')}-${(t.title||'')}`,
             title: t.title,
-            output_count: t.output_count ?? t.count ?? 0,
-            brand: t.brand || t.project || t.workspace || t.project_abbr,
-            task_type: t.task_type || t.category || t.section,
-            performed_by: t.performed_by || t.poc,
+            output_count: t.output_count ?? t.output_count ?? 0,
+            brand: t.brand,
+            task_type: t.task_type,
+            performed_by: t.performed_by,
             status: t.status,
             due_on: t.due_on,
             completed_at: t.completed_at,
             date_submitted: t.date_submitted,
-            time_minutes: t.time_minutes ?? t.time_spent_minutes,
+            time_minutes: t.time_minutes ?? t.time_minutes,
             permalink_url: t.permalink_url
           };
 
@@ -508,7 +508,7 @@ $(document).ready(function () {
 
       // ===== Monthly Dashboard helpers =====
       mapCategory(t){
-        const raw = (t.task_type || t.category || t.section || '').toLowerCase();
+        const raw = (t.task_type).toLowerCase();
         const checks = [
           ['gbp','GBP'],
           ['blog','Blog Graphics'],
