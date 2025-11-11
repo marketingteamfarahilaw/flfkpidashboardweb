@@ -298,8 +298,8 @@
                   {{ r.title || '—' }}
                 </a>
               </td>
-              <td class="t-center">{{ r.output_count ?? 0 }}</td>
-              <td>{{ r.brand || '—' }}</td>
+              <td class="t-center">{{ r.output_count ?? 1 }}</td>
+              <td>{{ r.brand || '!' }}</td>
               <td><span class="pill">{{ r.task_type || '—' }}</span></td>
               <td>{{ r.performed_by || '—' }}</td>
               <td>
