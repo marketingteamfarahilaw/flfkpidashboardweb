@@ -298,8 +298,8 @@
                   {{ r.title || '—' }}
                 </a>
               </td>
-              <td class="t-center">{{ r.output_count ?? 1 }}</td>
-              <td>{{ r.brand || '!' }}</td>
+              <td class="t-center">{{ r.output_count ?? 0 }}</td>
+              <td>{{ r.brand || '—' }}</td>
               <td><span class="pill">{{ r.task_type || '—' }}</span></td>
               <td>{{ r.performed_by || '—' }}</td>
               <td>
@@ -409,8 +409,19 @@ $(document).ready(function () {
           (bucket[key] = bucket[key] || []).push(row);
         });
 
+        /* ===== UPDATED SORTER: prioritize rows with output_count/time_minutes, then by values desc, then date desc ===== */
         Object.keys(bucket).forEach(k=>{
           bucket[k].sort((a,b)=>{
+            const aHas = (this.asNum(a.output_count) > 0) || (this.asNum(a.time_minutes) > 0);
+            const bHas = (this.asNum(b.output_count) > 0) || (this.asNum(b.time_minutes) > 0);
+            if (aHas !== bHas) return bHas - aHas;
+
+            const ocDiff = this.asNum(b.output_count) - this.asNum(a.output_count);
+            if (ocDiff !== 0) return ocDiff;
+
+            const tmDiff = this.asNum(b.time_minutes) - this.asNum(a.time_minutes);
+            if (tmDiff !== 0) return tmDiff;
+
             const ad = new Date(a.completed_at || a.date_submitted || a.due_on || 0).getTime();
             const bd = new Date(b.completed_at || b.date_submitted || b.due_on || 0).getTime();
             return bd - ad;
@@ -447,6 +458,9 @@ $(document).ready(function () {
     },
     watch:{ filteredTasks(){ this.renderAll(); } },
     methods:{
+      /* NEW helper used by the sorter */
+      asNum(v){ const n = Number(v); return isFinite(n) ? n : 0; },
+
       fmt(d){ const y=d.getFullYear(), m=('0'+(d.getMonth()+1)).slice(-2), day=('0'+d.getDate()).slice(-2); return `${y}-${m}-${day}`; },
       setMTD(){ const t=new Date(), first=new Date(t.getFullYear(), t.getMonth(), 1); this.filters.startDate=this.fmt(first); this.filters.endDate=this.fmt(t); },
       clearDateRange(){ this.filters.startDate=''; this.filters.endDate=''; },
