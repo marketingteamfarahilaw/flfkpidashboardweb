@@ -130,12 +130,21 @@
           <label class="mb-1">Date End</label>
           <input type="date" class="form-control form-control-sm" v-model="filters.endDate">
         </div>
-        <div class="col-md-2 col-6 mb-2">
+        <!-- UPDATED: multi-select Performed By -->
+        <div class="col-md-3 col-12 mb-2">
           <label class="mb-1">Performed By</label>
-          <select class="form-control form-control-sm" v-model="filters.performedBy">
-            <option value="">All</option>
-            <option v-for="val in filterOptions.performedBy" :key="val" :value="val">{{ val }}</option>
+          <select class="form-control form-control-sm"
+                  v-model="filters.performedBy"
+                  multiple>
+            <option v-for="val in filterOptions.performedBy"
+                    :key="val"
+                    :value="val">
+              {{ val }}
+            </option>
           </select>
+          <small style="font-size:11px; color:var(--muted);">
+            Leave empty to show all. Hold Ctrl (Windows) or ⌘ (Mac) to select multiple.
+          </small>
         </div>
         <div class="col-md-3 col-12 mb-2">
           <button class="btn btn-outline-secondary btn-sm mr-2" @click="clearDateRange">Clear</button>
@@ -325,7 +334,8 @@ $(document).ready(function () {
     el: '#app',
     data: {
       tasks: [],
-      filters: { startDate:'', endDate:'', performedBy:'' },
+      // UPDATED: performedBy is now an array for multi-select
+      filters: { startDate:'', endDate:'', performedBy:[] },
       filterOptions: { performedBy:[] },
       expanded: {},
       hoverTask: null, sortKey:'', sortAsc:true,
@@ -345,7 +355,7 @@ $(document).ready(function () {
     },
     computed:{
       filteredTasks(){
-        const s=this.filters.startDate, e=this.filters.endDate, p=this.filters.performedBy;
+        const s=this.filters.startDate, e=this.filters.endDate, pArr=this.filters.performedBy;
         const inRange=(d)=> {
           if(!s && !e) return true;
           if(!d) return false;
@@ -356,7 +366,11 @@ $(document).ready(function () {
         };
         return this.tasks.filter(t=>{
           const dateToCheck = t.completed_at || t.date_submitted || t.due_on || null;
-          const perfOk = !p || (t.performed_by||'Unassigned')===p;
+          const performer = t.performed_by || 'Unassigned';
+
+          // If no performer selected → show all; otherwise must be in the selected list
+          const perfOk = !pArr || pArr.length === 0 || pArr.includes(performer);
+
           return inRange(dateToCheck) && perfOk;
         });
       },
@@ -409,7 +423,7 @@ $(document).ready(function () {
           (bucket[key] = bucket[key] || []).push(row);
         });
 
-        /* ===== UPDATED SORTER: prioritize rows with output_count/time_minutes, then by values desc, then date desc ===== */
+        /* ===== SORTER: prioritize rows with output_count/time_minutes, then by values desc, then date desc ===== */
         Object.keys(bucket).forEach(k=>{
           bucket[k].sort((a,b)=>{
             const aHas = (this.asNum(a.output_count) > 0) || (this.asNum(a.time_minutes) > 0);
@@ -458,13 +472,23 @@ $(document).ready(function () {
     },
     watch:{ filteredTasks(){ this.renderAll(); } },
     methods:{
-      /* NEW helper used by the sorter */
+      /* helper used by the sorter */
       asNum(v){ const n = Number(v); return isFinite(n) ? n : 0; },
 
-      fmt(d){ const y=d.getFullYear(), m=('0'+(d.getMonth()+1)).slice(-2), day=('0'+d.getDate()).slice(-2); return `${y}-${m}-${day}`; },
-      setMTD(){ const t=new Date(), first=new Date(t.getFullYear(), t.getMonth(), 1); this.filters.startDate=this.fmt(first); this.filters.endDate=this.fmt(t); },
+      fmt(d){
+        const y=d.getFullYear(), m=('0'+(d.getMonth()+1)).slice(-2), day=('0'+d.getDate()).slice(-2);
+        return `${y}-${m}-${day}`;
+      },
+      setMTD(){
+        const t=new Date(), first=new Date(t.getFullYear(), t.getMonth(), 1);
+        this.filters.startDate=this.fmt(first);
+        this.filters.endDate=this.fmt(t);
+      },
       clearDateRange(){ this.filters.startDate=''; this.filters.endDate=''; },
-      sortBy(key){ if(this.sortKey===key) this.sortAsc=!this.sortAsc; else { this.sortKey=key; this.sortAsc=true; } },
+      sortBy(key){
+        if(this.sortKey===key) this.sortAsc=!this.sortAsc;
+        else { this.sortKey=key; this.sortAsc=true; }
+      },
       toggleDetail(p){ this.$set(this.expanded,p,!this.expanded[p]); },
 
       fmtDate(v){
@@ -584,7 +608,6 @@ $(document).ready(function () {
 
           const performers = Array.from(new Set(this.tasks.map(t=>t.performed_by||'Unassigned'))).sort();
           this.filterOptions.performedBy = performers;
-          this.donutLabels = performers;
 
           if(!this.filters.startDate && !this.filters.endDate){ this.setMTD(); }
           this.$nextTick(this.renderAll);
@@ -632,11 +655,17 @@ $(document).ready(function () {
           }
         };
 
+        // Build counts from *filtered* tasks so donut respects filters
         const counts = this.filteredTasks.reduce((acc,t)=>{
           const k=t.performed_by||'Unassigned';
-          acc[k]=(acc[k]||0)+1; return acc;
+          acc[k]=(acc[k]||0)+1; 
+          return acc;
         },{});
-        const labels = this.donutLabels;
+
+        // Use only performers present after filters
+        const labels = Object.keys(counts).sort();
+        this.donutLabels = labels;
+
         const data = labels.map(l=>counts[l]||0);
 
         const ctx = document.getElementById('performedByChart').getContext('2d');
@@ -649,7 +678,7 @@ $(document).ready(function () {
         });
       },
 
-      // ===== UPDATED: Per-member stacked bar (Complete / Progress / Incomplete)
+      // Per-member stacked bar (Complete / Progress / Incomplete)
       buildBar(){
         const buckets = {}; // { performer: {complete, progress, incomplete} }
         const today = new Date(); today.setHours(0,0,0,0);
@@ -712,8 +741,7 @@ $(document).ready(function () {
                 ticks:{ autoSkip:false, maxRotation:0, minRotation:0 }
               }
             }
-            // If you prefer horizontal bars, uncomment the next line:
-            // , indexAxis:'y'
+            // For horizontal bars, you can add: indexAxis:'y'
           }
         });
       },
