@@ -76,7 +76,7 @@
   }
   #overallBar{ width:60vw!important; height: 720px!important; margin:0 auto!important; }
   .chart-box{ position:relative; height:300px; }
-  .bar-box{ height:auto; } /* allow dynamic height */
+  .bar-box{ height:auto; }
   #performedByChart { margin: 0 auto; }
   @media(max-width: 992px){
     .grid-3{ grid-template-columns:1fr; }
@@ -130,7 +130,7 @@
           <label class="mb-1">Date End</label>
           <input type="date" class="form-control form-control-sm" v-model="filters.endDate">
         </div>
-        <!-- UPDATED: multi-select Performed By -->
+        <!-- Multi-select Performed By -->
         <div class="col-md-3 col-12 mb-2">
           <label class="mb-1">Performed By</label>
           <select class="form-control form-control-sm"
@@ -154,7 +154,7 @@
       </div>
     </div>
 
-    <!-- ===== Section 1: Tasks Performed By (Donut) ===== -->
+    <!-- ===== Section 1: Tasks Performed By (Individual) ===== -->
     <div class="card-xl mb-4">
       <h5 class="section-title">Tasks Performed By (Individual)</h5>
       <div class="grid-3">
@@ -188,7 +188,7 @@
       </div>
     </div>
 
-    <!-- ===== Section 2: Members vs Task Status (Bar) ===== -->
+    <!-- ===== Section 2: Members Task Status ===== -->
     <div class="card-xl mb-4">
       <h5 class="section-title">Members Task Status</h5>
       <div class="bar-box">
@@ -201,7 +201,7 @@
       </div>
     </div>
 
-    <!-- ===== Section 2.5: Monthly Dashboards (Mini-Tables) ===== -->
+    <!-- ===== Section 2.5: Monthly Dashboards ===== -->
     <div class="card-xl mb-4">
       <h5 class="section-title">Monthly Dashboards</h5>
 
@@ -285,20 +285,24 @@
         <thead class="thead-light">
           <tr>
             <th style="min-width:380px">Design-Related Tasks</th>
-            <th style="width:90px; text-align:center">OUTPUT<br>COUNT</th>
-            <th style="width:120px">BRAND</th>
-            <th style="width:140px">TASK TYPE</th>
+            <!-- Conditionally visible columns -->
+            <th v-if="showOutputDetails" style="width:90px; text-align:center">
+              OUTPUT<br>COUNT
+            </th>
+            <th v-if="showOutputDetails" style="width:120px">BRAND</th>
+            <th v-if="showOutputDetails" style="width:140px">TASK TYPE</th>
             <th style="width:150px">POC</th>
             <th style="width:120px">STATUS</th>
             <th style="width:120px">DUE DATE</th>
             <th style="width:140px">DATE SUBMITTED</th>
-            <th style="width:120px">Time<br>(Minutes)</th>
+            <th v-if="showOutputDetails" style="width:120px">Time<br>(Minutes)</th>
           </tr>
         </thead>
         <tbody>
           <template v-for="(rows, weekKey) in weekGroups" :key="weekKey">
             <tr class="week-header">
-              <td colspan="9"><strong>{{ weekKey }}</strong></td>
+              <!-- Dynamic colspan based on visible columns -->
+              <td :colspan="showOutputDetails ? 9 : 5"><strong>{{ weekKey }}</strong></td>
             </tr>
             <tr v-for="r in rows" :key="r.id">
               <td>
@@ -307,9 +311,9 @@
                   {{ r.title || '—' }}
                 </a>
               </td>
-              <td class="t-center">{{ r.output_count ?? 0 }}</td>
-              <td>{{ r.brand || '—' }}</td>
-              <td><span class="pill">{{ r.task_type || '—' }}</span></td>
+              <td v-if="showOutputDetails" class="t-center">{{ r.output_count ?? 0 }}</td>
+              <td v-if="showOutputDetails">{{ r.brand || '—' }}</td>
+              <td v-if="showOutputDetails"><span class="pill">{{ r.task_type || '—' }}</span></td>
               <td>{{ r.performed_by || '—' }}</td>
               <td>
                 <span :class="['status-badge', statusClass(r.status, r.completed_at, r.due_on)]">
@@ -318,7 +322,7 @@
               </td>
               <td>{{ fmtDate(r.due_on) }}</td>
               <td>{{ fmtDate(r.completed_at || r.date_submitted) }}</td>
-              <td class="t-right">{{ r.time_minutes ?? '' }}</td>
+              <td v-if="showOutputDetails" class="t-right">{{ r.time_minutes ?? '' }}</td>
             </tr>
           </template>
         </tbody>
@@ -334,8 +338,7 @@ $(document).ready(function () {
     el: '#app',
     data: {
       tasks: [],
-      // UPDATED: performedBy is now an array for multi-select
-      filters: { startDate:'', endDate:'', performedBy:[] },
+      filters: { startDate:'', endDate:'', performedBy:[] }, // multi-select
       filterOptions: { performedBy:[] },
       expanded: {},
       hoverTask: null, sortKey:'', sortAsc:true,
@@ -354,6 +357,11 @@ $(document).ready(function () {
       bar: null
     },
     computed:{
+      // true if Cyber or KC is selected in Performed By filter
+      showOutputDetails(){
+        const p = this.filters.performedBy || [];
+        return p.includes('Cyber') || p.includes('KC');
+      },
       filteredTasks(){
         const s=this.filters.startDate, e=this.filters.endDate, pArr=this.filters.performedBy;
         const inRange=(d)=> {
@@ -400,7 +408,20 @@ $(document).ready(function () {
       /* ===== Week-grouped rows for matrix ===== */
       weekGroups(){
         const bucket = {};
+        const selected = this.filters.performedBy || [];
+        const selectedHasCyberKC = selected.includes('Cyber') || selected.includes('KC');
+
         this.filteredTasks.forEach(t=>{
+          // EXTRA FILTER: if Cyber/KC is selected, only show tasks where
+          // output_count != 0 and brand is not null/empty
+          if (selectedHasCyberKC) {
+            const out = this.asNum(t.output_count ?? t.output_count ?? 0);
+            const brand = (t.brand || '').trim();
+            if (out === 0 || brand === '') {
+              return; // skip this task
+            }
+          }
+
           const basisStr = t.completed_at || t.date_submitted || t.due_on;
           const basis = basisStr ? new Date(basisStr.length<=10 ? basisStr+'T00:00:00' : basisStr) : new Date();
           const key = this.weekLabelFromDate(basis);
@@ -423,7 +444,7 @@ $(document).ready(function () {
           (bucket[key] = bucket[key] || []).push(row);
         });
 
-        /* ===== SORTER: prioritize rows with output_count/time_minutes, then by values desc, then date desc ===== */
+        // SORTER: prioritize rows with output_count/time_minutes, then by values desc, then date desc
         Object.keys(bucket).forEach(k=>{
           bucket[k].sort((a,b)=>{
             const aHas = (this.asNum(a.output_count) > 0) || (this.asNum(a.time_minutes) > 0);
@@ -472,7 +493,6 @@ $(document).ready(function () {
     },
     watch:{ filteredTasks(){ this.renderAll(); } },
     methods:{
-      /* helper used by the sorter */
       asNum(v){ const n = Number(v); return isFinite(n) ? n : 0; },
 
       fmt(d){
@@ -547,7 +567,7 @@ $(document).ready(function () {
         for(const [needle,label] of checks){
           if(raw.includes(needle)) return label;
         }
-        return null; // ignore if we can't classify
+        return null;
       },
       buildMonthDash(monthOffset){
         const start = new Date(); start.setDate(1); start.setHours(0,0,0,0);
@@ -563,7 +583,6 @@ $(document).ready(function () {
           return inMonth(basis);
         });
 
-        // group by performer to pick top 2
         const byPerf = monthTasks.reduce((acc,t)=>{
           const k=t.performed_by||'Unassigned';
           (acc[k]=acc[k]||[]).push(t);
@@ -662,7 +681,6 @@ $(document).ready(function () {
           return acc;
         },{});
 
-        // Use only performers present after filters
         const labels = Object.keys(counts).sort();
         this.donutLabels = labels;
 
@@ -680,7 +698,7 @@ $(document).ready(function () {
 
       // Per-member stacked bar (Complete / Progress / Incomplete)
       buildBar(){
-        const buckets = {}; // { performer: {complete, progress, incomplete} }
+        const buckets = {};
         const today = new Date(); today.setHours(0,0,0,0);
 
         this.filteredTasks.forEach(t=>{
@@ -698,7 +716,6 @@ $(document).ready(function () {
           }
         });
 
-        // Sort members by total tasks desc, then name
         const labels = Object.keys(buckets)
           .sort((a,b)=>{
             const ta = buckets[a].complete + buckets[a].progress + buckets[a].incomplete;
@@ -714,7 +731,7 @@ $(document).ready(function () {
         const canvas = document.getElementById('overallBar');
         const ctx = canvas.getContext('2d');
 
-        // Dynamic height for many members
+        // Dynamic height
         canvas.height = Math.max(360, labels.length * 32);
 
         if(this.bar) this.bar.destroy();
@@ -741,7 +758,6 @@ $(document).ready(function () {
                 ticks:{ autoSkip:false, maxRotation:0, minRotation:0 }
               }
             }
-            // For horizontal bars, you can add: indexAxis:'y'
           }
         });
       },
