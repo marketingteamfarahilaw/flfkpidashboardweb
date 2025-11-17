@@ -16,7 +16,7 @@
       <div class="col-md-4 mb-4" v-for="user in userlist" :key="user.id">
         <div class="card h-100 shadow-sm">
           <div class="card-body">
-            <h5 class="card-title">{{ user.customer_firstname }} {{ user.customer_lastname }}</h5>
+            <h5 class="card-title">{{ user.customer_first_name }} {{ user.customer_last_name }}</h5>
             <p class="card-text mb-1"><strong>Email:</strong> {{ user.customer_email }}</p>
             <p class="card-text mb-1"><strong>Username:</strong> {{ user.customer_username }}</p>
             <p class="card-text mb-1"><strong>Designation:</strong> {{ user.customer_designation }}</p>
