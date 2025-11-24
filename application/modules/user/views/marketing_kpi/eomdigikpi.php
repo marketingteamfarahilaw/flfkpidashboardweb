@@ -98,7 +98,7 @@
                     </div>
                 </div>  
                 </hr>
-                <h4 class="text-center">{{firstTableTotals.totalSigned}}</h4>
+                <h4 class="text-center">{{mtdsigncount + referredcount}}</h4>
             </div>
             <!--totalsignedcount-->
             <div class="col-md">
